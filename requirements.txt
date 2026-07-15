@@ -15,3 +15,6 @@ drf-yasg
 pytest-django
 whitenoise
 django-redis
+djangorestframework-simplejwt
+drf-spectacular
+argon2-cffi
