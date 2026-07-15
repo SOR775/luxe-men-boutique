@@ -3,6 +3,9 @@
 # Exit on error
 set -o errexit
 
+echo "Creating necessary directories..."
+mkdir -p logs
+
 echo "Running migrations..."
 python manage.py migrate --noinput
 
