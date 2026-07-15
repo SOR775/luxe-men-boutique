@@ -3,6 +3,7 @@ accounts/views.py — Authentication & Profile Views
 """
 import secrets
 import logging
+import threading
 from datetime import timedelta
 
 from django.contrib import messages, auth
@@ -140,14 +141,19 @@ class RegisterView(View):
             'site_name': settings.SITE_NAME,
         })
 
-        send_mail(
-            subject=subject,
-            message=f'Click here to verify your email: {verify_url}',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
+        def _send():
+            try:
+                send_mail(
+                    subject=subject,
+                    message=f'Click here to verify your email: {verify_url}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error(f'Failed to send verification email to {user.email}: {e}')
+        threading.Thread(target=_send, daemon=True).start()
 
 
 # ─── Email Verification ────────────────────────────────────────────────────────
