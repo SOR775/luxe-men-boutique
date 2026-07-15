@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Escrow Dashboard - LUXE MEN{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
+      <div>
+        <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">Escrow Dashboard</h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">Manage all active escrow transactions</p>
+      </div>
+      <div class="space-y-3 text-right">
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Total Funds Held</p>
+          <p class="text-2xl font-bold text-luxe-gold">KES {{ total_held|floatformat:2 }}</p>
+        </div>
+        <form method="post" action="{% url 'escrow:auto_release' %}" class="inline">
+          {% csrf_token %}
+          <button type="submit"
+            class="inline-flex items-center justify-center rounded-full bg-luxe-gold px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white shadow hover:bg-yellow-600 transition">
+            ⏰ Run Auto-release Now
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="mb-8 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-luxe-gray p-4">
+      <form method="get" class="mb-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <label class="sr-only" for="search">Search escrows</label>
+            <input id="search" name="q" value="{{ search_term }}" type="search"
+              placeholder="Search order #, buyer email, tracking or escrow ID"
+              class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-luxe-gold" />
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="submit"
+              class="inline-flex items-center justify-center rounded-full bg-luxe-gold px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white shadow hover:bg-yellow-600 transition">
+              🔍 Search Escrows
+            </button>
+            {% if search_term %}
+            <a href="{% url 'escrow:dashboard' %}"
+              class="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-700 hover:border-gray-400 transition">
+              Clear
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </form>
+      {% if search_term %}
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Showing results for “{{ search_term }}”.</p>
+      {% endif %}
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Jump to section</p>
+      <div class="flex flex-wrap gap-3">
+        <a href="#disputed" class="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-800">Disputed</a>
+        <a href="#funded" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800">Funded</a>
+        <a href="#shipped" class="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-800">Shipped</a>
+        <a href="#delivered" class="text-xs font-semibold text-green-600 dark:text-green-400 hover:text-green-800">Delivered</a>
+        <a href="#released" class="text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-900">Released</a>
+        <a href="#refunded" class="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-800">Refunded</a>
+      </div>
+    </div>
+
+    <!-- Alert: Disputes requiring attention -->
+    {% if disputed %}
+    <div class="mb-6 flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-4">
+      <span class="text-2xl">🚨</span>
+      <div>
+        <p class="font-semibold text-red-800 dark:text-red-300">{{ disputed|length }} Active Dispute{{ disputed|length|pluralize }} Require Attention</p>
+        <p class="text-sm text-red-600 dark:text-red-400">Please review and resolve the disputed transactions below.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Alert: Overdue auto-releases -->
+    {% if overdue %}
+    <div class="mb-6 flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4">
+      <span class="text-2xl">⏰</span>
+      <div>
+        <p class="font-semibold text-amber-800 dark:text-amber-300">{{ overdue|length }} Escrow{{ overdue|length|pluralize }} Overdue for Auto-Release</p>
+        <p class="text-sm text-amber-600 dark:text-amber-400">The auto-release timer has expired. Run the release task or manually release these.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      {% for label, count, colour in status_cards %}
+      <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-xl p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">{{ label }}</p>
+        <p class="text-2xl font-bold" style="color:{{ colour }}">{{ count }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Disputed (priority) -->
+    {% if disputed %}
+    <div id="disputed" class="mb-8">
+      <h2 class="font-serif text-xl font-bold text-red-600 dark:text-red-400 mb-4">⚠️ Disputed</h2>
+      {% include "escrow/_escrow_table.html" with escrows=disputed show_resolve=True %}
+    </div>
+    {% endif %}
+
+    <!-- Funded -->
+    {% if funded %}
+    <div id="funded" class="mb-8">
+      <h2 class="font-serif text-xl font-bold text-blue-600 dark:text-blue-400 mb-4">🔒 Awaiting Shipment ({{ funded|length }})</h2>
+      {% include "escrow/_escrow_table.html" with escrows=funded show_ship=True %}
+    </div>
+    {% endif %}
+
+    <!-- Shipped -->
+    {% if shipped %}
+    <div id="shipped" class="mb-8">
+      <h2 class="font-serif text-xl font-bold text-amber-600 dark:text-amber-400 mb-4">🚚 Shipped - Awaiting Confirmation ({{ shipped|length }})</h2>
+      {% include "escrow/_escrow_table.html" with escrows=shipped %}
+    </div>
+    {% endif %}
+
+    <!-- Delivered -->
+    {% if delivered %}
+    <div id="delivered" class="mb-8">
+      <h2 class="font-serif text-xl font-bold text-green-600 dark:text-green-400 mb-4">✅ Delivered - Pending Release ({{ delivered|length }})</h2>
+      {% include "escrow/_escrow_table.html" with escrows=delivered show_release=True %}
+    </div>
+    {% endif %}
+
+    <!-- Recently Released -->
+    {% if released %}
+    <div id="released" class="mb-8">
+      <h2 class="font-serif text-xl font-bold text-gray-500 mb-4">💰 Recently Released</h2>
+      {% include "escrow/_escrow_table.html" with escrows=released %}
+    </div>
+    {% endif %}
+
+    <!-- Recently Refunded -->
+    {% if refunded %}
+    <div id="refunded" class="mb-8">
+      <h2 class="font-serif text-xl font-bold text-purple-600 dark:text-purple-400 mb-4">🔄 Recently Refunded</h2>
+      {% include "escrow/_escrow_table.html" with escrows=refunded %}
+    </div>
+    {% endif %}
+
+    {% if not funded and not shipped and not disputed and not delivered and not released and not refunded %}
+    <div class="text-center py-20">
+      <p class="text-4xl mb-4">🔒</p>
+      <p class="text-gray-400">No escrow transactions yet. They will appear here once orders are paid.</p>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Callback Requests — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="font-serif text-3xl font-bold">Callback Requests</h1>
+      <p class="text-sm text-gray-500">Review inbound callback requests from customers.</p>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded shadow">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold">Name</th>
+          <th class="px-4 py-3 text-left font-semibold">Phone</th>
+          <th class="px-4 py-3 text-left font-semibold">Email</th>
+          <th class="px-4 py-3 text-left font-semibold">Requested</th>
+          <th class="px-4 py-3 text-left font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for request in callback_requests %}
+        <tr>
+          <td class="px-4 py-3">{{ request.name }}</td>
+          <td class="px-4 py-3">{{ request.phone_number }}</td>
+          <td class="px-4 py-3">{{ request.email }}</td>
+          <td class="px-4 py-3">{{ request.requested_at|date:"M d, Y H:i" }}</td>
+          <td class="px-4 py-3">{% if request.is_completed %}Completed{% else %}Pending{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-4 py-8 text-center text-gray-500">No callback requests have been submitted.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

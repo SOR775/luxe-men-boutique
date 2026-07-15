@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+  <h2 class="text-2xl font-semibold mb-4">User Management</h2>
+  <table class="w-full text-sm border-collapse">
+    <thead class="text-left text-xs text-gray-500 uppercase">
+      <tr>
+        <th class="p-2">Name</th>
+        <th class="p-2">Email</th>
+        <th class="p-2">Status</th>
+        <th class="p-2">Joined</th>
+        <th class="p-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr class="border-t">
+        <td class="p-2">{{ u.get_full_name }}</td>
+        <td class="p-2">{{ u.email }}</td>
+        <td class="p-2">{% if u.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td class="p-2">{{ u.date_joined|date:"Y-m-d" }}</td>
+        <td class="p-2">
+          <a href="{% url 'accounts:admin_user_edit' u.pk %}" class="text-luxe-gold">Edit</a>
+          <button data-pk="{{ u.pk }}" class="admin-reset inline-block ml-3 text-sm text-gray-600">Send reset</button>
+          <a href="{% url 'accounts:admin_audit_log' %}?user={{ u.pk }}" class="inline-block ml-3 text-sm text-gray-600">View audit</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="p-4 text-center text-gray-500">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="mt-4 flex items-center justify-between">
+    <div class="text-sm text-gray-600">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ paginator.count }}</div>
+    <div>
+      <nav class="inline-flex" aria-label="pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="px-2 py-1 bg-white border rounded-l">Prev</a>
+        {% else %}
+          <span class="px-2 py-1 bg-gray-100 border rounded-l text-gray-400">Prev</span>
+        {% endif %}
+        <span class="px-3 py-1 border-t border-b">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="px-2 py-1 bg-white border rounded-r">Next</a>
+        {% else %}
+          <span class="px-2 py-1 bg-gray-100 border rounded-r text-gray-400">Next</span>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.admin-reset').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const pk = btn.dataset.pk;
+      if (!confirm('Send password-reset email to this user?')) return;
+      try {
+        const res = await fetch(`/accounts/admin/users/${pk}/password-reset/`, {method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'}});
+        if (res.ok) {
+          alert('Reset email sent.');
+        } else {
+          alert('Failed to send.');
+        }
+      } catch(err) { console.error(err); alert('Error'); }
+    });
+  });
+});
+</script>
+{% endblock %}

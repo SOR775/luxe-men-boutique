@@ -1,0 +1,84 @@
+{% extends "accounts/dashboard_base.html" %}
+
+{% block dashboard_title %}Wallet Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+  <div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.25em] text-gray-500">Staff wallet management</p>
+        <h2 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">Adjust balances without Django admin</h2>
+      </div>
+      <a href="{% url 'wallets:overview' %}" class="inline-flex items-center justify-center rounded-full border border-luxe-gold/30 px-4 py-2 text-sm font-semibold text-luxe-gold">Back to wallet</a>
+    </div>
+  </div>
+
+  <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Manual adjustment</h3>
+      <form method="post" class="mt-4 space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">User</label>
+          <select name="user" class="w-full rounded-2xl border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-luxe-dark dark:text-white" required>
+            <option value="">Select a user</option>
+            {% for user in users %}
+              <option value="{{ user.id }}">{{ user.email|default:user.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Action</label>
+          <select name="action" class="w-full rounded-2xl border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-luxe-dark dark:text-white">
+            <option value="credit">Credit</option>
+            <option value="debit">Debit</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
+          <input type="number" min="0.01" step="0.01" name="amount" class="w-full rounded-2xl border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-luxe-dark dark:text-white" required>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+          <input type="text" name="description" class="w-full rounded-2xl border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-luxe-dark dark:text-white" placeholder="Manual adjustment">
+        </div>
+        <button type="submit" class="rounded-full bg-luxe-gold px-4 py-2 text-sm font-semibold text-white">Apply adjustment</button>
+      </form>
+    </div>
+
+    <div class="space-y-6">
+      <div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Wallet balances</h3>
+        <div class="mt-4 space-y-3">
+          {% for wallet in wallets %}
+            <div class="flex items-center justify-between rounded-2xl bg-gray-50/70 px-3 py-3 dark:bg-luxe-dark/70">
+              <div>
+                <p class="font-semibold text-gray-900 dark:text-white">{{ wallet.user.email|default:wallet.user.username }}</p>
+                <p class="text-sm text-gray-500">{{ wallet.user.username }}</p>
+              </div>
+              <span class="font-semibold text-luxe-gold">{{ wallet.balance }} {{ wallet.currency }}</span>
+            </div>
+          {% empty %}
+            <p class="rounded-2xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">No wallet records yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Pending top-ups</h3>
+        <div class="mt-4 space-y-3">
+          {% for topup in pending_topups %}
+            <div class="rounded-2xl bg-gray-50/70 px-3 py-3 dark:bg-luxe-dark/70">
+              <p class="font-semibold text-gray-900 dark:text-white">{{ topup.user.email|default:topup.user.username }}</p>
+              <p class="text-sm text-gray-500">{{ topup.amount }} {{ topup.currency }} • {{ topup.created_at|date:"M d, Y H:i" }}</p>
+            </div>
+          {% empty %}
+            <p class="rounded-2xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">No pending top-ups.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

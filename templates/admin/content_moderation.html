@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Content Moderation — Admin Dashboard{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">Content Moderation</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Review and approve/reject user-submitted content</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+      <form method="get" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Status</label>
+          <select name="status" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending ({{ pending_count }})</option>
+            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content Type</label>
+          <select name="type" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <option value="">All Types</option>
+            {% for value, label in content_types %}
+            <option value="{{ value }}" {% if content_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+    </div>
+
+    <!-- Moderation Queue -->
+    <div class="space-y-4">
+      {% for item in items %}
+      <div class="bg-white dark:bg-luxe-gray border {% if item.is_flagged %}border-red-300 dark:border-red-700{% else %}border-gray-200 dark:border-gray-700{% endif %} rounded-lg p-6">
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ item.title }}</h3>
+            <p class="text-sm text-gray-500">
+              {{ item.get_content_type_display }} • Submitted {{ item.created_at|date:"M d, Y H:i" }}
+            </p>
+          </div>
+          <div class="flex gap-2">
+            {% if item.is_flagged %}
+            <span class="text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded">⚠️ FLAGGED</span>
+            {% endif %}
+            <span class="text-xs font-semibold {% if item.status == 'pending' %}bg-yellow-100 text-yellow-700{% elif item.status == 'approved' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-700{% endif %} px-3 py-1 rounded">
+              {{ item.get_status_display }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Content -->
+        {% if item.description %}
+        <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <p class="text-xs text-gray-500 uppercase mb-2">Content</p>
+          <p class="text-gray-900 dark:text-white">{{ item.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Submitted By -->
+        <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <p class="text-xs text-gray-500 uppercase mb-2">Submitted By</p>
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-luxe-gold flex items-center justify-center text-white text-sm font-bold">
+              {{ item.submitted_by.first_name|first }}
+            </div>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white">{{ item.submitted_by.get_full_name }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">{{ item.submitted_by.email }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flag Reason -->
+        {% if item.is_flagged %}
+        <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/20 p-3 rounded">
+          <p class="text-xs text-red-700 dark:text-red-300 uppercase font-semibold mb-1">Flag Reason</p>
+          <p class="text-red-900 dark:text-red-100">{{ item.flag_reason }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Decision -->
+        {% if item.status == 'pending' %}
+        <form method="post" action="{% url 'dashboard:moderate_content' item.id %}">
+          {% csrf_token %}
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Decision
+              </label>
+              <select name="action" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white" required>
+                <option value="">-- Select Decision --</option>
+                <option value="approve">✓ Approve Content</option>
+                <option value="reject">✗ Reject Content</option>
+              </select>
+            </div>
+            <div id="rejectionReasonDiv" class="hidden">
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Rejection Reason
+              </label>
+              <textarea name="rejection_reason" rows="2" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Reviewer Notes
+              </label>
+              <textarea name="reviewer_notes" rows="2" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white" placeholder="Internal notes..."></textarea>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-luxe-gold text-white rounded-lg font-semibold hover:bg-yellow-600">
+              ✓ Submit Review
+            </button>
+          </div>
+        </form>
+
+        <script>
+          const actionSelect = document.currentScript.parentElement.querySelector('select[name="action"]');
+          const rejectionDiv = document.getElementById('rejectionReasonDiv');
+          actionSelect.addEventListener('change', function() {
+            rejectionDiv.style.display = this.value === 'reject' ? 'block' : 'none';
+          });
+        </script>
+        {% else %}
+        <!-- Already Reviewed -->
+        <div class="{% if item.status == 'approved' %}bg-green-50 dark:bg-green-900/20{% else %}bg-red-50 dark:bg-red-900/20{% endif %} p-3 rounded">
+          <p class="text-xs {% if item.status == 'approved' %}text-green-700 dark:text-green-300{% else %}text-red-700 dark:text-red-300{% endif %} uppercase font-semibold mb-2">
+            Reviewed by {{ item.reviewed_by.get_full_name }}
+          </p>
+          {% if item.rejection_reason %}
+          <p class="text-sm {% if item.status == 'approved' %}text-green-900 dark:text-green-100{% else %}text-red-900 dark:text-red-100{% endif %}">
+            {{ item.rejection_reason }}
+          </p>
+          {% endif %}
+          {% if item.reviewer_notes %}
+          <p class="text-sm {% if item.status == 'approved' %}text-green-800 dark:text-green-200{% else %}text-red-800 dark:text-red-200{% endif %} mt-2">
+            {{ item.reviewer_notes }}
+          </p>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="text-center py-8 text-gray-500">
+        <p>No items to moderate</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

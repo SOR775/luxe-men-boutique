@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Stock History — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="mb-8">
+    <h1 class="font-serif text-3xl font-bold">Stock History</h1>
+    <p class="text-sm text-gray-500">Track inventory movement and audit all stock adjustments.</p>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded-3xl border border-gray-200 shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">Date</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">SKU</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">Movement</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">Quantity</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">Reference</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">User</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for entry in history %}
+        <tr>
+          <td class="px-4 py-3 text-gray-600">{{ entry.created_at|date:"M d, Y H:i" }}</td>
+          <td class="px-4 py-3 text-gray-900">{{ entry.stock.variant.sku }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ entry.get_movement_type_display }}</td>
+          <td class="px-4 py-3 text-gray-900">{{ entry.quantity }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ entry.reference|default:'—' }}</td>
+          <td class="px-4 py-3 text-gray-600">
+            {% if entry.created_by %}
+              {{ entry.created_by.get_full_name|default:entry.created_by.email }}
+            {% else %}
+              System
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-4 py-8 text-center text-gray-500">No stock history records found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

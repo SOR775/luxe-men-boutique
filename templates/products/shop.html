@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shop — Luxe Men | Premium Men's Boutique{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-luxe-dark dark:via-luxe-gray dark:to-luxe-dark pt-6" x-data="{ searchQuery: '{{ search_query|escapejs }}', suggestions: [], showSuggestions: false }">
+
+  <!-- Page Header -->
+  <div class="bg-white/80 dark:bg-luxe-gray/90 border-b border-gray-200/70 dark:border-gray-800 py-8 sm:py-10 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">The Collection</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
+          {% if search_query %}
+            Showing results for "<span class="text-luxe-gold font-medium">{{ search_query }}</span>" — {{ total_count }} item{{ total_count|pluralize }}
+          {% else %}
+            {{ total_count }} item{{ total_count|pluralize }} available
+          {% endif %}
+        </p>
+      </div>
+      <!-- Sort -->
+      <div class="mt-4 md:mt-0 flex flex-col sm:flex-row sm:items-center gap-3">
+        <label class="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">Sort by:</label>
+        <select name="sort" id="sort-select"
+          hx-get="{% url 'products:shop' %}"
+          hx-include="#filter-form"
+          hx-target="#product-grid-container"
+          hx-push-url="true"
+          hx-indicator="#grid-loading"
+          class="bg-white dark:bg-luxe-dark border border-gray-200 dark:border-gray-700 text-sm px-3 py-2 focus:outline-none focus:border-luxe-gold dark:text-white rounded-full">
+          <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+          <option value="popularity" {% if current_sort == 'popularity' %}selected{% endif %}>Popularity</option>
+          <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+          <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+          <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>Rating</option>
+          <option value="name_asc" {% if current_sort == 'name_asc' %}selected{% endif %}>Name A–Z</option>
+          <option value="best_selling" {% if current_sort == 'best_selling' %}selected{% endif %}>Best Selling</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex flex-col lg:flex-row gap-10">
+
+      <!-- Sidebar Filters -->
+      <aside class="w-full lg:w-64 flex-shrink-0" x-data="{ filtersOpen: false }">
+        <button @click="filtersOpen = !filtersOpen" class="lg:hidden flex items-center gap-2 text-sm font-semibold mb-4 border border-gray-300 dark:border-gray-700 px-4 py-2 rounded-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"></path></svg>
+          Filters
+        </button>
+
+        <div class="hidden lg:block" :class="filtersOpen ? '!block' : ''">
+          <form method="get" id="filter-form"
+            hx-get="{% url 'products:shop' %}"
+            hx-target="#product-grid-container"
+            hx-push-url="true"
+            hx-trigger="change, submit"
+            hx-indicator="#grid-loading"
+            class="rounded-[24px] border border-gray-200/70 bg-white/90 p-5 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
+            {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+            {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+            <!-- Search -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Search</h3>
+              <div class="relative">
+                <input type="text" name="q" x-model="searchQuery" @input="fetchSuggestions($event.target.value)" @focus="showSuggestions = true" @blur="setTimeout(() => showSuggestions = false, 150)" value="{{ search_query }}" placeholder="Search products..."
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-2 text-sm focus:outline-none focus:border-luxe-gold rounded-full dark:text-white">
+                <div x-show="showSuggestions && suggestions.length" x-cloak class="absolute z-20 mt-2 w-full rounded-2xl border border-gray-200 bg-white shadow-lg overflow-hidden dark:border-gray-700 dark:bg-luxe-gray">
+                  <template x-for="item in suggestions" :key="item.slug">
+                    <a :href="item.url" class="flex items-center justify-between px-3 py-2 text-sm hover:bg-luxe-gold/10 dark:hover:bg-luxe-gold/20">
+                      <span x-text="item.name"></span>
+                      <span class="text-xs text-gray-500" x-text="item.brand"></span>
+                    </a>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- Size -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Size</h3>
+              <div class="space-y-2">
+                {% for size in product_sizes %}
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" name="size" value="{{ size }}" {% if size in current_sizes %}checked{% endif %}>
+                  {{ size }}
+                </label>
+                {% empty %}
+                <p class="text-sm text-gray-500">No size options available.</p>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Color -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Color</h3>
+              <div class="space-y-2">
+                {% for color in product_colors %}
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" name="color" value="{{ color }}" {% if color in current_colors %}checked{% endif %}>
+                  {{ color }}
+                </label>
+                {% empty %}
+                <p class="text-sm text-gray-500">No color options available.</p>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Material -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Material</h3>
+              <div class="space-y-2">
+                {% for material in product_materials %}
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" name="material" value="{{ material }}" {% if material in current_materials %}checked{% endif %}>
+                  {{ material }}
+                </label>
+                {% empty %}
+                <p class="text-sm text-gray-500">No material options available.</p>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Availability -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Availability</h3>
+              <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" name="in_stock" value="1" {% if has_stock_filter %}checked{% endif %}>
+                In stock only
+              </label>
+            </div>
+
+            <!-- Discounts -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Discount</h3>
+              <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" name="discount" value="1" {% if has_discount_filter %}checked{% endif %}>
+                On sale
+              </label>
+            </div>
+
+            <!-- New Arrivals -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">New arrivals</h3>
+              <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" name="new_arrivals" value="1" {% if has_new_arrivals_filter %}checked{% endif %}>
+                Added in the last 30 days
+              </label>
+            </div>
+
+            <!-- Rating -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Rating</h3>
+              <div class="space-y-2">
+                {% for value in '45' %}
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" name="rating" value="{{ value }}" {% if value in current_ratings %}checked{% endif %}>
+                  {{ value }}+ stars
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Categories -->
+            {% if categories %}
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Categories</h3>
+              <ul class="space-y-1">
+                <li>
+                  <a href="{% url 'products:shop' %}" class="text-sm {% if not current_category %}text-luxe-gold font-semibold{% else %}text-gray-700 dark:text-gray-300 hover:text-luxe-gold{% endif %}">All</a>
+                </li>
+                {% for category in categories %}
+                <li>
+                  <a href="?category={{ category.slug }}" class="text-sm {% if current_category == category.slug %}text-luxe-gold font-semibold{% else %}text-gray-700 dark:text-gray-300 hover:text-luxe-gold{% endif %}">{{ category.name }}</a>
+                  {% for sub in category.subcategories.all %}
+                  <ul class="pl-3 mt-1">
+                    <li><a href="?category={{ sub.slug }}" class="text-xs {% if current_category == sub.slug %}text-luxe-gold font-semibold{% else %}text-gray-500 dark:text-gray-400 hover:text-luxe-gold{% endif %}">{{ sub.name }}</a></li>
+                  </ul>
+                  {% endfor %}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
+            <!-- Brands -->
+            {% if brands %}
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Brands</h3>
+              <ul class="space-y-1">
+                {% for brand in brands %}
+                <li>
+                  <a href="?brand={{ brand.slug }}" class="text-sm {% if current_brand == brand.slug %}text-luxe-gold font-semibold{% else %}text-gray-700 dark:text-gray-300 hover:text-luxe-gold{% endif %}">{{ brand.name }}</a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
+            <!-- Price Range -->
+            <div class="mb-8">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Price Range</h3>
+              <div class="flex items-center gap-2">
+                <input type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}"
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-3 py-2 text-sm focus:outline-none focus:border-luxe-gold rounded-md dark:text-white">
+                <span class="text-gray-400">—</span>
+                <input type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}"
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-3 py-2 text-sm focus:outline-none focus:border-luxe-gold rounded-md dark:text-white">
+              </div>
+              <button type="submit" class="mt-3 w-full bg-luxe-gold text-white py-2 text-xs font-bold uppercase tracking-wider hover:bg-yellow-600 transition rounded-full">Apply</button>
+            </div>
+
+            <a href="{% url 'products:shop' %}" class="text-xs text-gray-500 hover:text-luxe-gold transition">Clear all filters ×</a>
+          </form>
+        </div>
+      </aside>
+
+      <!-- Product Grid (HTMX target) -->
+      <div class="flex-1">
+        <!-- Loading overlay -->
+        <div id="grid-loading" class="htmx-indicator pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm" style="display:none!important">
+          <div class="flex flex-col items-center gap-3 bg-white dark:bg-luxe-gray rounded-2xl px-8 py-6 shadow-2xl">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 bg-luxe-gold rounded-full animate-bounce" style="animation-delay:0ms"></div>
+              <div class="w-3 h-3 bg-luxe-gold/70 rounded-full animate-bounce" style="animation-delay:150ms"></div>
+              <div class="w-3 h-3 bg-luxe-gold/40 rounded-full animate-bounce" style="animation-delay:300ms"></div>
+            </div>
+            <span class="text-xs uppercase tracking-widest font-semibold text-gray-500 dark:text-gray-400">Updating results…</span>
+          </div>
+        </div>
+
+        <div id="product-grid-container">
+          {% include "products/partials/shop_product_grid.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const root = document.querySelector('[x-data]');
+    if (!root) return;
+    const searchData = Alpine.$data(root);
+    if (!searchData) return;
+    window.fetchSuggestions = async function(value) {
+      searchData.searchQuery = value;
+      if (!value) {
+        searchData.suggestions = [];
+        searchData.showSuggestions = false;
+        return;
+      }
+      const params = new URLSearchParams({ q: value });
+      const response = await fetch(`/products/suggestions/?${params.toString()}`);
+      const data = await response.json();
+      searchData.suggestions = Array.isArray(data) ? data : [];
+      searchData.showSuggestions = searchData.suggestions.length > 0;
+    };
+  });
+</script>
+{% endblock %}

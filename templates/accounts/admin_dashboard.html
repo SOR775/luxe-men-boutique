@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% load static math_filters %}
+
+{% block title %}Admin Dashboard — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-10 sm:py-14">
+  <div class="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-8">
+    <aside class="xl:sticky xl:top-8">
+      {% include 'accounts/admin_sidebar.html' with active='dashboard' %}
+    </aside>
+
+    <main class="space-y-8">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-8 sm:mb-10">
+        <div>
+          <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-luxe-gold mb-2">Administration</p>
+          <h1 class="font-serif text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-wide">Admin Dashboard</h1>
+        </div>
+        <p class="text-[0.78rem] text-gray-400 dark:text-gray-500 font-light">Quick overview of store health</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10">
+    <div class="group fade-card rounded-2xl border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-gray-200/80 dark:hover:border-white/[0.08]">
+      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Orders</p>
+      <p class="text-3xl font-bold mt-2.5 tracking-tight text-gray-900 dark:text-white">{{ orders_count }}</p>
+    </div>
+    <div class="group fade-card rounded-2xl border border-luxe-gold/15 dark:border-luxe-gold/10 bg-gradient-to-br from-luxe-gold/[0.04] via-white/80 to-amber-50/60 dark:from-luxe-gold/[0.06] dark:via-luxe-gray/80 dark:to-luxe-dark/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(212,175,55,0.08)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-luxe-gold/25 dark:hover:border-luxe-gold/15">
+      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Revenue (total)</p>
+      <p class="text-3xl font-bold mt-2.5 tracking-tight text-gray-900 dark:text-white">KES {{ total_revenue }}</p>
+    </div>
+    <div class="group fade-card rounded-2xl border border-red-100 dark:border-red-500/[0.08] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-red-200 dark:hover:border-red-500/[0.15]">
+      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Low Stock SKUs</p>
+      <p class="text-3xl font-bold mt-2.5 tracking-tight text-red-500 dark:text-red-400">{{ low_stock_count }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+    <div class="col-span-2 rounded-2xl fade-card border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <h2 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-5">Revenue (Last 7 days)</h2>
+      <div class="h-56">
+        <canvas id="revenueChart" class="w-full h-56"></canvas>
+      </div>
+      <div class="mt-5 pt-5 border-t border-gray-100 dark:border-white/[0.05] grid grid-cols-3 gap-3 sm:gap-4">
+        {% for d in revenue_last_7 %}
+        <div class="text-center py-2 rounded-xl bg-gray-50/60 dark:bg-white/[0.02]">
+          <div class="text-[0.65rem] tracking-[0.12em] uppercase text-gray-400 dark:text-gray-500 font-medium">{{ d.date|slice:"5:" }}</div>
+          <div class="font-bold text-sm text-gray-900 dark:text-white mt-1 tracking-tight">KES {{ d.total }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="rounded-2xl fade-card border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <div class="mb-5">
+        <canvas id="topSellingChart" class="w-full h-40"></canvas>
+      </div>
+      <ul class="space-y-1.5 text-sm">
+        {% for t in top_selling %}
+        <li class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50/80 dark:hover:bg-white/[0.03] transition-colors duration-200">
+          <span class="text-gray-600 dark:text-gray-400 font-light truncate mr-3">{{ t.product_name }}</span>
+          <span class="font-semibold text-gray-900 dark:text-white text-sm whitespace-nowrap">{{ t.qty }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-4 sm:mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+    <div class="rounded-2xl border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-4">Support Queue</h3>
+      {% if support_tickets %}
+      <div class="space-y-3">
+        {% for ticket in support_tickets %}
+        <div class="rounded-xl border border-gray-100 dark:border-white/[0.04] bg-gray-50/50 dark:bg-white/[0.02] p-4 transition-colors duration-200 hover:bg-gray-50/80 dark:hover:bg-white/[0.04]">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-gray-900 dark:text-white truncate">{{ ticket.subject }}</p>
+              <p class="text-[0.72rem] text-gray-400 dark:text-gray-500 font-light mt-0.5">{{ ticket.user.get_full_name|default:ticket.email }} • {{ ticket.get_status_display }}</p>
+            </div>
+            <a href="{% url 'support:ticket_detail' ticket.pk %}" class="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-luxe-gold hover:text-yellow-500 transition-colors duration-200 whitespace-nowrap shrink-0">Open</a>
+          </div>
+          {% with support_ticket_messages|get_item:ticket.pk as ticket_messages %}
+          {% if ticket_messages %}
+          <div class="mt-3 space-y-2">
+            {% for message in ticket_messages %}
+            <div class="rounded-lg bg-white/70 dark:bg-white/[0.03] border border-gray-100/80 dark:border-white/[0.03] p-3 text-sm">
+              <p class="text-[0.6rem] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500 font-semibold mb-1">{% if message.is_from_customer %}Customer{% else %}Staff{% endif %}</p>
+              <p class="text-gray-600 dark:text-gray-300 font-light leading-relaxed text-[0.82rem]">{{ message.body }}</p>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08] p-8 text-center">
+        <p class="text-sm text-gray-400 dark:text-gray-500 font-light">No open support tickets right now.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl fade-card border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-4">Recent Orders</h3>
+      <ul class="space-y-1">
+        {% for o in recent_orders %}
+        <li class="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-gray-50/80 dark:hover:bg-white/[0.03] transition-colors duration-200">
+          <div class="min-w-0 mr-3">
+            <div class="font-semibold text-sm text-gray-900 dark:text-white truncate">{{ o.order_number }}</div>
+            <div class="text-[0.72rem] text-gray-400 dark:text-gray-500 font-light mt-0.5 truncate">{{ o.user.get_full_name|default:o.shipping_email }} • {{ o.created_at|date:"M d, Y H:i" }}</div>
+          </div>
+          <div class="font-semibold text-sm text-gray-900 dark:text-white whitespace-nowrap">KES {{ o.total }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="rounded-2xl fade-card border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-4">Quick Links</h3>
+      <ul class="space-y-1">
+        {% if 'access_orders' in user_admin_permissions %}
+        <li><a href="{% url 'orders:admin_orders' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Order Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_products' in user_admin_permissions %}
+        <li><a href="{% url 'products:admin_products' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Product Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        <li><a href="{% url 'products:admin_categories' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Category Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_coupons' in user_admin_permissions %}
+        <li><a href="{% url 'orders:admin_coupons' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Coupon Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_audit_log' in user_admin_permissions %}
+        <li><a href="{% url 'accounts:admin_audit_log' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Audit Logs</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_inventory_dashboard' in user_admin_permissions %}
+        <li><a href="{% url 'inventory:admin_dashboard' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Inventory Dashboard</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_inventory_sku' in user_admin_permissions %}
+        <li><a href="{% url 'inventory:admin_sku_management' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>SKU Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_inventory_stock_history' in user_admin_permissions %}
+        <li><a href="{% url 'inventory:admin_stock_history' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Stock History</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_bulk_order_actions' in user_admin_permissions %}
+        <li><a href="{% url 'orders:admin_bulk_actions' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Bulk Order Actions</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_rma' in user_admin_permissions %}
+        <li><a href="{% url 'orders:admin_rma' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>RMA Requests</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+    <div class="rounded-2xl fade-card border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-4">Admin Control Center</h3>
+      <ul class="space-y-1">
+        {% if 'access_system_health' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:system_health' %}" class="flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>System Health</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_user_management' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:user_management' %}" class="flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>User Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_dispute_resolution' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:disputes' %}" class="flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Dispute Resolution</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_content_moderation' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:moderation' %}" class="flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Content Moderation</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+        {% if 'access_settings' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:settings' %}" class="flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>System Settings</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function(){
+    const revenueData = {{ revenue_last_7_json|default:'[]'|safe }};
+    const labels = revenueData.map(d => d.date.slice(5));
+    const values = revenueData.map(d => d.total);
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Revenue (KES)',
+          data: values,
+          backgroundColor: 'rgba(212, 175, 55, 0.75)',
+          hoverBackgroundColor: 'rgba(212, 175, 55, 0.95)',
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15,15,15,0.9)',
+            titleFont: { family: 'Inter', size: 11, weight: '500' },
+            bodyFont: { family: 'Inter', size: 12, weight: '600' },
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'Inter', size: 11 }, color: 'rgba(156,163,175,0.8)' },
+            border: { display: false }
+          },
+          y: {
+            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+            ticks: { font: { family: 'Inter', size: 11 }, color: 'rgba(156,163,175,0.8)' },
+            border: { display: false }
+          }
+        }
+      }
+    });
+
+    const top = {{ top_selling_json|default:'[]'|safe }};
+    const topLabels = top.map(t => t.product_name);
+    const topVals = top.map(t => t.qty);
+    const ctx2 = document.getElementById('topSellingChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: topLabels,
+        datasets: [{
+          label: 'Units sold',
+          data: topVals,
+          backgroundColor: 'rgba(212, 175, 55, 0.2)',
+          hoverBackgroundColor: 'rgba(212, 175, 55, 0.4)',
+          borderColor: 'rgba(212, 175, 55, 0.6)',
+          borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15,15,15,0.9)',
+            titleFont: { family: 'Inter', size: 11, weight: '500' },
+            bodyFont: { family: 'Inter', size: 12, weight: '600' },
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+            ticks: { font: { family: 'Inter', size: 11 }, color: 'rgba(156,163,175,0.8)' },
+            border: { display: false }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { font: { family: 'Inter', size: 11 }, color: 'rgba(75,85,99,0.9)' },
+            border: { display: false }
+          }
+        }
+      }
+    });
+  })();
+</script>
+{% endblock %}

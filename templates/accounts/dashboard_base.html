@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-luxe-dark dark:via-luxe-gray dark:to-luxe-dark pt-6">
+  <div class="bg-white/80 dark:bg-luxe-gray/90 border-b border-gray-200/70 dark:border-gray-800 py-8 sm:py-10 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-luxe-gold">Member area</p>
+        <h1 class="font-serif text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{% block dashboard_title %}My Profile{% endblock %}</h1>
+        <p class="text-gray-500 text-sm mt-1">Welcome back, {{ request.user.first_name|default:request.user.email }}</p>
+      </div>
+      <form action="{% url 'accounts:logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center justify-center rounded-full border border-gray-200 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-500 hover:border-red-300 hover:text-red-500 transition">
+          Sign Out
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+      <div class="lg:col-span-1">
+        <div class="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0">
+          <a href="{% url 'accounts:profile' %}" class="min-w-[150px] lg:min-w-0 rounded-2xl px-4 py-3 bg-white/90 dark:bg-luxe-gray shadow-sm {% if request.resolver_match.url_name == 'profile' %}border border-luxe-gold/40 text-gray-900 dark:text-white{% else %}border border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white{% endif %} text-sm font-bold uppercase tracking-wider transition">
+            Personal Info
+          </a>
+          <a href="{% url 'accounts:addresses' %}" class="min-w-[150px] lg:min-w-0 rounded-2xl px-4 py-3 bg-white/90 dark:bg-luxe-gray shadow-sm {% if request.resolver_match.url_name == 'addresses' %}border border-luxe-gold/40 text-gray-900 dark:text-white{% else %}border border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white{% endif %} text-sm font-bold uppercase tracking-wider transition">
+            Address Book
+          </a>
+          <a href="{% url 'orders:order_list' %}" class="min-w-[150px] lg:min-w-0 rounded-2xl px-4 py-3 bg-white/90 dark:bg-luxe-gray shadow-sm {% if request.resolver_match.app_name == 'orders' %}border border-luxe-gold/40 text-gray-900 dark:text-white{% else %}border border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white{% endif %} text-sm font-bold uppercase tracking-wider transition">
+            Order History
+          </a>
+          <a href="{% url 'accounts:wishlist' %}" class="min-w-[150px] lg:min-w-0 rounded-2xl px-4 py-3 bg-white/90 dark:bg-luxe-gray shadow-sm {% if request.resolver_match.url_name == 'wishlist' %}border border-luxe-gold/40 text-gray-900 dark:text-white{% else %}border border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white{% endif %} text-sm font-bold uppercase tracking-wider transition">
+            Wishlist
+          </a>
+          <a href="{% url 'wallets:overview' %}" class="min-w-[150px] lg:min-w-0 rounded-2xl px-4 py-3 bg-white/90 dark:bg-luxe-gray shadow-sm {% if request.resolver_match.namespace == 'wallets' %}border border-luxe-gold/40 text-gray-900 dark:text-white{% else %}border border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white{% endif %} text-sm font-bold uppercase tracking-wider transition">
+            Wallet
+          </a>
+          <a href="{% url 'accounts:change_password' %}" class="min-w-[150px] lg:min-w-0 rounded-2xl px-4 py-3 bg-white/90 dark:bg-luxe-gray shadow-sm {% if request.resolver_match.url_name == 'change_password' %}border border-luxe-gold/40 text-gray-900 dark:text-white{% else %}border border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white{% endif %} text-sm font-bold uppercase tracking-wider transition">
+            Security
+          </a>
+          <a href="{% url 'accounts:support_history' %}" class="min-w-[150px] lg:min-w-0 rounded-2xl px-4 py-3 bg-white/90 dark:bg-luxe-gray shadow-sm {% if request.resolver_match.url_name == 'support_history' %}border border-luxe-gold/40 text-gray-900 dark:text-white{% else %}border border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 dark:hover:text-white{% endif %} text-sm font-bold uppercase tracking-wider transition">
+            Support History
+          </a>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3 space-y-6">
+        {% if request.resolver_match.namespace == 'wallets' %}
+        <div class="flex flex-wrap gap-2 rounded-2xl border border-gray-200/70 bg-white/80 p-2 shadow-sm dark:border-gray-700 dark:bg-luxe-gray/90">
+          <a href="{% url 'wallets:overview' %}" class="rounded-xl px-4 py-2 text-sm font-semibold transition {% if request.resolver_match.url_name == 'overview' %}bg-luxe-gold text-white{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-luxe-dark{% endif %}">
+            Overview
+          </a>
+          <a href="{% url 'wallets:transactions' %}" class="rounded-xl px-4 py-2 text-sm font-semibold transition {% if request.resolver_match.url_name == 'transactions' %}bg-luxe-gold text-white{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-luxe-dark{% endif %}">
+            Transactions
+          </a>
+          <a href="{% url 'wallets:top_up' %}" class="rounded-xl px-4 py-2 text-sm font-semibold transition {% if request.resolver_match.url_name == 'top_up' %}bg-luxe-gold text-white{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-luxe-dark{% endif %}">
+            Top up
+          </a>
+        </div>
+        {% endif %}
+        {% block dashboard_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

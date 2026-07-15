@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-3xl font-serif font-bold text-gray-900 dark:text-white">Notifications</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Recent activity for your account.</p>
+    </div>
+    <form method="post" action="{% url 'notifications:mark_all_read' %}">
+      {% csrf_token %}
+      <button type="submit" class="px-4 py-2 bg-luxe-gold text-white rounded-sm uppercase tracking-wider text-xs">Mark all read</button>
+    </form>
+  </div>
+
+  <div class="space-y-4">
+    {% for notification in notifications %}
+    <div class="p-4 rounded-sm border bg-white dark:bg-gray-800 shadow-sm {% if not notification.is_read %}border-luxe-gold bg-gray-50 dark:bg-gray-900{% else %}border-gray-200 dark:border-gray-700{% endif %}">
+      <div class="flex items-start justify-between space-x-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ notification.title }}</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{{ notification.message }}</p>
+          {% if notification.target_url %}
+          <a href="{{ notification.target_url }}" class="text-sm text-luxe-gold hover:text-yellow-600">View details</a>
+          {% endif %}
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-gray-400">{{ notification.created_at|date:'M d, Y H:i' }}</p>
+          {% if not notification.is_read %}
+          <form method="post" action="{% url 'notifications:mark_read' notification.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="mt-2 text-xs text-luxe-gold hover:text-yellow-600">Mark read</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="p-8 rounded-sm border border-dashed border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">
+      No notifications yet. Important updates will appear here.
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+  <div class="mt-8 flex justify-center">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-sm mr-3">Previous</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-sm">Next</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

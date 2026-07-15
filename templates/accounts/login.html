@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Log In — Luxe Men{% endblock %}
+
+{% block content %}
+<style>
+  @keyframes luxeFadeUp {
+    0%   { opacity: 0; transform: translateY(24px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes luxeFadeIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes luxeShake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+  @keyframes luxeUnderline {
+    0%   { transform: scaleX(0); }
+    100% { transform: scaleX(1); }
+  }
+  @keyframes luxeSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  .luxe-card {
+    animation: luxeFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .luxe-heading {
+    animation: luxeFadeIn 0.8s ease-out 0.1s both;
+  }
+  .luxe-subtext {
+    animation: luxeFadeIn 0.8s ease-out 0.25s both;
+  }
+  .luxe-message {
+    animation: luxeShake 0.5s ease-in-out both;
+  }
+  .luxe-field {
+    animation: luxeFadeUp 0.5s ease-out both;
+  }
+  .luxe-field:nth-of-type(1) { animation-delay: 0.15s; }
+  .luxe-field:nth-of-type(2) { animation-delay: 0.25s; }
+
+  .luxe-input {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+  }
+  .luxe-input:focus {
+    transform: translateY(-1px);
+  }
+
+  .luxe-label-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .luxe-label-wrap::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 1px;
+    background-color: #d4af37;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .luxe-field:focus-within .luxe-label-wrap::after {
+    transform: scaleX(1);
+  }
+
+  .luxe-links a {
+    position: relative;
+    transition: color 0.2s ease, padding-left 0.2s ease;
+  }
+  .luxe-links a::before {
+    content: "";
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%) scaleX(0);
+    transform-origin: left;
+    width: 8px;
+    height: 1px;
+    background-color: currentColor;
+    transition: transform 0.2s ease;
+  }
+  .luxe-links a:hover {
+    padding-left: 12px;
+  }
+  .luxe-links a:hover::before {
+    transform: translateY(-50%) scaleX(1);
+  }
+
+  .luxe-submit {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    animation: luxeFadeUp 0.5s ease-out 0.35s both;
+  }
+  .luxe-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -6px rgba(212, 175, 55, 0.6);
+  }
+  .luxe-submit:active {
+    transform: translateY(0) scale(0.98);
+  }
+  .luxe-submit .luxe-shine {
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s ease;
+  }
+  .luxe-submit:hover .luxe-shine {
+    left: 125%;
+  }
+
+  .luxe-checkbox {
+    transition: transform 0.15s ease;
+  }
+  .luxe-checkbox:active {
+    transform: scale(0.9);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .luxe-card, .luxe-heading, .luxe-subtext, .luxe-message, .luxe-field, .luxe-submit {
+      animation: none !important;
+    }
+    .luxe-input:focus, .luxe-submit:hover, .luxe-submit:active {
+      transform: none !important;
+    }
+  }
+</style>
+
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="luxe-card max-w-md w-full space-y-8 bg-white dark:bg-luxe-gray p-8 border border-gray-100 dark:border-gray-800 rounded-sm shadow-sm">
+    <div class="text-center">
+      <h2 class="luxe-heading mt-2 text-3xl font-serif font-bold text-gray-900 dark:text-white">Sign In</h2>
+      <p class="luxe-subtext mt-2 text-sm text-gray-500">
+        Or
+        <a href="{% url 'accounts:register' %}" class="font-medium text-luxe-gold hover:text-yellow-600 transition">
+          create a new account
+        </a>
+      </p>
+    </div>
+
+    {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+      <div class="luxe-message p-3 rounded text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+        {{ message|safe }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form class="mt-8 space-y-6" action="{% url 'accounts:login' %}" method="POST">
+      {% csrf_token %}
+      {% if request.GET.next %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {% endif %}
+
+      <div class="space-y-4">
+        <div class="luxe-field">
+          <label for="id_username" class="luxe-label-wrap block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Email or Username</label>
+          <input id="id_username" name="username" type="text" autocomplete="username" required
+            class="luxe-input appearance-none rounded-sm relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-luxe-dark focus:outline-none focus:ring-luxe-gold focus:border-luxe-gold sm:text-sm"
+            placeholder="Email or username" value="{{ form.username.value|default:'' }}">
+          {% if form.username.errors %}
+          <p class="luxe-message text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="luxe-field">
+          <label for="id_password" class="luxe-label-wrap block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Password</label>
+          <input id="id_password" name="password" type="password" autocomplete="current-password" required
+            class="luxe-input appearance-none rounded-sm relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-luxe-dark focus:outline-none focus:ring-luxe-gold focus:border-luxe-gold sm:text-sm"
+            placeholder="••••••••">
+          {% if form.password.errors %}
+          <p class="luxe-message text-red-500 text-xs mt-1">{{ form.password.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center">
+          <input id="remember-me" name="remember" type="checkbox" class="luxe-checkbox h-4 w-4 text-luxe-gold focus:ring-luxe-gold border-gray-300 rounded accent-luxe-gold">
+          <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+            Remember me
+          </label>
+        </div>
+
+        <div class="luxe-links text-sm space-y-1">
+          <a href="{% url 'accounts:forgot_password' %}" class="block font-medium text-luxe-gold hover:text-yellow-600">
+            Forgot your password?
+          </a>
+          <a href="{% url 'accounts:resend_verification' %}" class="block font-medium text-luxe-gold hover:text-yellow-600">
+            Didn't receive verification email?
+          </a>
+          <a href="{% url 'accounts:login_code_request' %}" class="block font-medium text-luxe-gold hover:text-yellow-600">
+            Sign in with email code instead
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" class="luxe-submit group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-widest rounded-sm text-white bg-luxe-gold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxe-gold">
+          <span class="luxe-shine"></span>
+          <span class="relative z-10">Sign In</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

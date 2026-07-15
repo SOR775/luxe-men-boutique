@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Resend Verification — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8 bg-white dark:bg-luxe-gray p-8 border border-gray-100 dark:border-gray-800 rounded-sm">
+    <div class="text-center">
+      <h2 class="mt-2 text-3xl font-serif font-bold text-gray-900 dark:text-white">Resend Verification</h2>
+      <p class="mt-2 text-sm text-gray-500">
+        Enter your email address and we'll send you a new link to verify your account.
+      </p>
+    </div>
+
+    {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+      <div class="p-3 rounded text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+        {{ message|safe }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form class="mt-8 space-y-6" action="{% url 'accounts:resend_verification' %}" method="POST">
+      {% csrf_token %}
+      <div>
+        <label for="email" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Email Address</label>
+        <input id="email" name="email" type="email" autocomplete="email" required
+          class="appearance-none rounded-sm relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-luxe-dark focus:outline-none focus:ring-luxe-gold focus:border-luxe-gold sm:text-sm transition"
+          placeholder="you@example.com">
+      </div>
+
+      <div>
+        <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-widest rounded-sm text-white bg-luxe-gold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxe-gold transition">
+          Send Verification Email
+        </button>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="{% url 'accounts:login' %}" class="text-sm font-medium text-luxe-gold hover:text-yellow-600 transition">
+          Return to Login
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

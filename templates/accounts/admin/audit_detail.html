@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto py-8">
+  <h2 class="text-2xl font-semibold mb-4">Audit Detail</h2>
+  <div class="bg-white dark:bg-gray-800 rounded p-4">
+    <dl class="grid grid-cols-1 gap-2">
+      <div><strong>Time:</strong> {{ log.created_at|date:"Y-m-d H:i:s" }}</div>
+      <div><strong>Action:</strong> {{ log.get_action_display }}</div>
+      <div><strong>Actor:</strong> {% if log.actor %}{{ log.actor.get_full_name }} &lt;{{ log.actor.email }}&gt;{% else %}System{% endif %}</div>
+      <div><strong>Target:</strong> {% if log.target_user %}{{ log.target_user.get_full_name }} &lt;{{ log.target_user.email }}&gt;{% else %}-{% endif %}</div>
+      <div><strong>IP:</strong> {{ log.ip_address }}</div>
+      <div><strong>Message:</strong><div class="mt-1 text-sm text-gray-700">{{ log.message }}</div></div>
+      <div><strong>Metadata:</strong>
+        <pre class="mt-1 text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded">{{ metadata_pretty }}</pre>
+      </div>
+    </dl>
+    <div class="mt-4">
+      <a href="{% url 'accounts:admin_audit_log' %}" class="text-sm text-gray-600">Back to audit</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

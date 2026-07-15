@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0F0F0F">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="shortcut icon" href="{% static 'images/icons/icon.svg' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/icons/icon.svg' %}">
+    <title>{% block title %}Luxe Men | Premium Men's Boutique{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (Compiled) -->
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-luxe-light dark:bg-luxe-dark text-gray-900 dark:text-gray-100 font-sans antialiased selection:bg-luxe-gold selection:text-white flex flex-col min-h-screen transition-colors duration-300" x-data="{ darkMode: {{ request.session.dark_mode|default:True|yesno:'true,false' }}, mobileMenuOpen: false }" :class="{ 'dark': darkMode, 'overflow-hidden': mobileMenuOpen }">
+
+    <!-- Skip link for keyboard / screen-reader users -->
+    <a href="#main-content" class="skip-link bg-luxe-gold text-white text-sm font-semibold px-4 py-2 rounded-md shadow-lg">
+        Skip to content
+    </a>
+    <button id="browser-back-button" type="button" class="browser-back-btn hidden" aria-label="Go back">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Back
+    </button>
+
+    <div id="site-preloader" class="site-preloader" aria-hidden="true">
+        <div class="grain"></div>
+        <div class="frame">
+            <div class="mark"></div>
+            <div class="rule top"></div>
+            <h1 class="wordmark" aria-label="LUXE WEARS">
+                <span class="word" data-word="LUXE"></span><span class="space"></span><span class="word accent" data-word="WEARS"></span>
+            </h1>
+            <div class="rule bottom"></div>
+            <p class="tagline">Fine Ready-to-Wear</p>
+            <div class="progress">
+                <div class="progress-track">
+                    <div class="progress-fill" id="site-preloader-fill"></div>
+                </div>
+                <div class="progress-meta">
+                    <span>Loading</span>
+                    <span><span class="value" id="site-preloader-percent">00</span>%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-500 border-b border-black/[0.03] dark:border-white/[0.03] safe-top" :class="darkMode ? 'glass' : 'glass-light'">
+        <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+            <div class="flex justify-between items-center h-16 sm:h-[4.5rem]">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="font-serif text-xl sm:text-[1.55rem] tracking-[0.2em] font-bold text-gray-900 dark:text-white transition-opacity duration-200 hover:opacity-80">
+                        LUXE<span class="text-luxe-gold">MEN</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-7 lg:space-x-9">
+                    <a href="{% url 'products:shop' %}?sort=newest" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-gray-600 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold transition-colors duration-200 font-medium">New Arrivals</a>
+                    <a href="{% url 'products:shop' %}" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-gray-600 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold transition-colors duration-200 font-medium">Shop</a>
+                    <a href="{% url 'products:shop' %}?featured=1" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-gray-600 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold transition-colors duration-200 font-medium">Collections</a>
+                    <a href="{% url 'products:shop' %}" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-gray-600 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold transition-colors duration-200 font-medium">Brands</a>
+                    {% if request.user.is_authenticated %}
+                    <a href="{% url 'escrow:seller_dashboard' %}" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-gray-600 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold transition-colors duration-200 font-medium">Sales Dashboard</a>
+                    {% endif %}
+                    {% if request.user.is_staff %}
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-red-500/80 hover:text-red-500 transition-colors duration-200 font-medium">Admin Dashboard</a>
+                    <a href="{% url 'orders:admin_revenue' %}" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-red-500/80 hover:text-red-500 transition-colors duration-200 font-medium">Revenue</a>
+                    <a href="{% url 'escrow:dashboard' %}" class="nav-link text-[0.7rem] tracking-[0.18em] uppercase text-red-500/80 hover:text-red-500 transition-colors duration-200 font-medium">Escrow Dashboard</a>
+                    {% endif %}
+                </div>
+
+                <!-- Icons (Search, Cart, Profile, Theme Toggle) -->
+                <div class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                    <button @click="darkMode = !darkMode; fetch('{% url 'core:toggle_dark_mode' %}');"
+                            aria-label="Toggle dark mode"
+                            class="icon-btn tap-target text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200">
+                        <svg x-show="!darkMode" class="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                        <svg x-show="darkMode" class="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </button>
+                    <a href="{% url 'core:search' %}" aria-label="Search" class="icon-btn tap-target text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200">
+                        <svg class="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </a>
+                    <div x-data="{ notifOpen: false }" class="relative">
+                        <button id="notif-btn" @click="notifOpen = !notifOpen" type="button"
+                                aria-label="Notifications" aria-haspopup="true" :aria-expanded="notifOpen.toString()"
+                                class="icon-btn tap-target relative text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200 focus:outline-none">
+                            <svg class="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            <span id="nav-notif-count" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center pointer-events-none shadow-sm">{{ notifications_count|default:'0' }}</span>
+                        </button>
+
+                        <div x-show="notifOpen" @click.away="notifOpen = false" x-cloak
+                             class="notif-dropdown origin-top-right absolute right-0 mt-3 w-[90vw] max-w-sm sm:w-80 bg-white dark:bg-[#1a1a1a] rounded-xl z-50 overflow-hidden border border-gray-100 dark:border-white/[0.06]" style="display:none;">
+                            <div class="px-4 py-3 border-b border-gray-100 dark:border-white/[0.06] flex items-center justify-between">
+                                <span class="font-semibold text-sm text-gray-900 dark:text-white">Notifications</span>
+                                <button id="notif-mark-all" class="text-[0.7rem] tracking-wider uppercase font-medium text-gray-400 hover:text-luxe-gold transition-colors duration-200">Mark all read</button>
+                            </div>
+                            <div id="notif-list" class="max-h-64 overflow-auto divide-y divide-gray-50 dark:divide-white/[0.04]"></div>
+                            <div class="px-4 py-2.5 border-t border-gray-100 dark:border-white/[0.06] text-center">
+                                <a href="{% url 'notifications:list' %}" class="text-[0.7rem] tracking-wider uppercase font-semibold text-luxe-gold hover:text-yellow-500 transition-colors duration-200">View all</a>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'core:contact' %}" aria-label="Help" class="icon-btn tap-target text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200">
+                        <svg class="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 1.97-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.125-.994.544-.994 1.093v.5M12 18h.01"></path></svg>
+                    </a>
+                    <a href="{% url 'accounts:profile' %}" aria-label="My account" class="icon-btn tap-target text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200">
+                        <svg class="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </a>
+                    <a href="/cart/" aria-label="Cart" class="icon-btn tap-target text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200 relative" id="nav-cart-btn">
+                        <svg class="w-[1.15rem] h-[1.15rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <span id="nav-cart-count" class="absolute -top-0.5 -right-0.5 bg-luxe-gold text-white text-[10px] font-bold rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center pointer-events-none shadow-sm">{{ cart_count|default:"0" }}</span>
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center md:hidden space-x-1">
+                    <a href="/cart/" aria-label="Cart" class="icon-btn tap-target text-gray-500 dark:text-gray-400 relative">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <span class="absolute -top-0.5 -right-0.5 bg-luxe-gold text-white text-[10px] font-bold rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center pointer-events-none">{{ cart_count|default:"0" }}</span>
+                    </a>
+                    <button @click="mobileMenuOpen = true" aria-label="Open menu" class="icon-btn tap-target text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Slide-Out Menu -->
+    <div x-show="mobileMenuOpen" class="relative z-[100] md:hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true" style="display: none;">
+        <!-- Background overlay -->
+        <div x-show="mobileMenuOpen"
+             x-transition:enter="ease-in-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in-out duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity" @click="mobileMenuOpen = false"></div>
+
+        <div class="fixed inset-0 overflow-hidden">
+            <div class="absolute inset-0 overflow-hidden">
+                <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                    <div x-show="mobileMenuOpen"
+                         x-transition:enter="transform transition ease-in-out duration-300"
+                         x-transition:enter-start="translate-x-full"
+                         x-transition:enter-end="translate-x-0"
+                         x-transition:leave="transform transition ease-in-out duration-300"
+                         x-transition:leave-start="translate-x-0"
+                         x-transition:leave-end="translate-x-full"
+                         class="pointer-events-auto w-screen max-w-xs safe-top safe-bottom">
+                        <div class="flex h-full flex-col overflow-y-scroll bg-white dark:bg-luxe-dark shadow-2xl border-l border-gray-100 dark:border-white/[0.06]">
+                            <div class="flex items-center justify-between px-5 py-5 border-b border-gray-100 dark:border-white/[0.06]">
+                                <h2 class="font-serif text-base tracking-[0.25em] font-bold text-gray-900 dark:text-white" id="slide-over-title">MENU</h2>
+                                <button type="button" aria-label="Close menu" class="icon-btn tap-target rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none" @click="mobileMenuOpen = false">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                            <div class="relative mt-3 flex-1 px-5 sm:px-6 flex flex-col gap-0 pb-6">
+                                <a href="{% url 'products:shop' %}?sort=newest" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">New Arrivals</a>
+                                <a href="{% url 'products:shop' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">Shop</a>
+                                <a href="{% url 'products:shop' %}?featured=1" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">Collections</a>
+                                <a href="{% url 'products:shop' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">Brands</a>
+
+                                <div class="flex items-center justify-between py-3.5 border-b border-gray-100 dark:border-white/[0.05]">
+                                    <span class="text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 font-medium">Dark Mode</span>
+                                    <button @click="darkMode = !darkMode" aria-label="Toggle dark mode" class="icon-btn tap-target text-gray-500 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold transition-all duration-200">
+                                        <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                                        <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                    </button>
+                                </div>
+                                <a href="{% url 'core:contact' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">Need Help?</a>
+                                <a href="{% url 'accounts:profile' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">My Account</a>
+                                {% if request.user.is_authenticated %}
+                                <a href="{% url 'escrow:seller_dashboard' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">Sales Dashboard</a>
+                                {% endif %}
+                                <a href="{% url 'notifications:list' %}" class="mobile-link flex justify-between items-center py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-gray-700 dark:text-gray-300 hover:text-luxe-gold dark:hover:text-luxe-gold border-b border-gray-100 dark:border-white/[0.05] font-medium">
+                                    Notifications
+                                    <span class="bg-red-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5 shadow-sm">{{ notifications_count|default:'0' }}</span>
+                                </a>
+                                {% if request.user.is_staff %}
+                                <a href="{% url 'accounts:admin_dashboard' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-red-500/80 hover:text-red-500 border-b border-gray-100 dark:border-white/[0.05] font-medium">Admin Dashboard</a>
+                                <a href="{% url 'orders:admin_revenue' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-red-500/80 hover:text-red-500 border-b border-gray-100 dark:border-white/[0.05] font-medium">Revenue</a>
+                                <a href="{% url 'escrow:dashboard' %}" class="mobile-link block py-3.5 text-[0.72rem] tracking-[0.18em] uppercase text-red-500/80 hover:text-red-500 font-medium">Escrow Dashboard</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if show_returning_customer_banner %}
+    <div class="mx-4 sm:mx-6 lg:mx-8 mt-[4.5rem] sm:mt-24">
+        <div class="banner-shimmer rounded-xl border border-luxe-gold/15 bg-gradient-to-r from-luxe-gold/[0.07] via-white to-amber-50/80 px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200 dark:border-amber-700/20 dark:from-amber-900/15 dark:via-luxe-gray dark:to-amber-950/10">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span class="font-light">{{ returning_customer_message }}</span>
+                <a href="{% url 'accounts:dashboard' %}" class="font-semibold text-luxe-gold hover:text-yellow-500 shrink-0 transition-colors duration-200">Visit your account &rarr;</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if show_recently_viewed_banner %}
+    <div class="mx-4 sm:mx-6 lg:mx-8 {% if not show_returning_customer_banner %}mt-[4.5rem] sm:mt-24{% else %}mt-2.5{% endif %}">
+        <div class="rounded-xl border border-gray-200/60 dark:border-white/[0.06] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span class="font-light">Pick up where you left off with your recently viewed pieces.</span>
+                <a href="{% url 'products:shop' %}" class="font-semibold text-luxe-gold hover:text-yellow-500 shrink-0 transition-colors duration-200">Continue browsing &rarr;</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-grow pt-20 sm:pt-24 pb-24 md:pb-0">
+        {% block content %}
+        {% endblock content %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-b from-gray-50 to-white dark:from-[#141414] dark:to-luxe-dark text-gray-500 dark:text-gray-400 pt-14 sm:pt-16 pb-8 sm:pb-10 border-t border-gray-100 dark:border-white/[0.05]">
+        <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 sm:gap-12">
+            <div class="col-span-1 sm:col-span-2 md:col-span-1">
+                <a href="/" class="font-serif text-2xl tracking-[0.2em] font-bold text-gray-900 dark:text-white mb-5 block transition-opacity duration-200 hover:opacity-80">
+                    LUXE<span class="text-luxe-gold">MEN</span>
+                </a>
+                <p class="text-[0.82rem] leading-[1.75] text-gray-400 dark:text-gray-500 max-w-xs font-light">
+                    Curating the finest in men's fashion. Elevate your style with our premium collections designed for the modern gentleman.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-gray-900 dark:text-white font-semibold uppercase tracking-[0.15em] mb-5 text-[0.7rem]">Shop</h4>
+                <ul class="space-y-3.5">
+                    <li><a href="{% url 'marketing:blog_list' %}" class="footer-link text-[0.82rem] text-gray-400 dark:text-gray-500 hover:text-luxe-gold dark:hover:text-luxe-gold py-0.5 font-light transition-colors duration-200">Journal</a></li>
+                    <li><a href="{% url 'products:shop' %}" class="footer-link text-[0.82rem] text-gray-400 dark:text-gray-500 hover:text-luxe-gold dark:hover:text-luxe-gold py-0.5 font-light transition-colors duration-200">Shop Latest</a></li>
+                    <li><a href="{% url 'core:contact' %}" class="footer-link text-[0.82rem] text-gray-400 dark:text-gray-500 hover:text-luxe-gold dark:hover:text-luxe-gold py-0.5 font-light transition-colors duration-200">Contact Us</a></li>
+                    <li><a href="{% url 'core:faq' %}" class="footer-link text-[0.82rem] text-gray-400 dark:text-gray-500 hover:text-luxe-gold dark:hover:text-luxe-gold py-0.5 font-light transition-colors duration-200">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-gray-900 dark:text-white font-semibold uppercase tracking-[0.15em] mb-5 text-[0.7rem]">Support</h4>
+                <ul class="space-y-3.5">
+                    <li><a href="{% url 'core:contact' %}" class="footer-link text-[0.82rem] text-gray-400 dark:text-gray-500 hover:text-luxe-gold dark:hover:text-luxe-gold py-0.5 font-light transition-colors duration-200">Contact Us</a></li>
+                    <li><a href="{% url 'core:faq' %}" class="footer-link text-[0.82rem] text-gray-400 dark:text-gray-500 hover:text-luxe-gold dark:hover:text-luxe-gold py-0.5 font-light transition-colors duration-200">FAQ</a></li>
+                    <li><a href="{% url 'support:ticket_list' %}" class="footer-link text-[0.82rem] text-gray-400 dark:text-gray-500 hover:text-luxe-gold dark:hover:text-luxe-gold py-0.5 font-light transition-colors duration-200">Support Tickets</a></li>
+                </ul>
+            </div>
+            <div class="col-span-1 sm:col-span-2 md:col-span-1">
+                <h4 class="text-gray-900 dark:text-white font-semibold uppercase tracking-[0.15em] mb-5 text-[0.7rem]">Newsletter</h4>
+                <p class="text-[0.82rem] mb-4 text-gray-400 dark:text-gray-500 font-light">Subscribe for exclusive offers and style updates.</p>
+                <form method="post" action="{% url 'marketing:newsletter_subscribe' %}" class="flex flex-col xs:flex-row gap-2 xs:gap-0">
+                    {% csrf_token %}
+                    <label for="newsletter-email" class="sr-only">Email address</label>
+                    <input id="newsletter-email" name="email" type="email" placeholder="Your email" required
+                           class="newsletter-input w-full bg-white dark:bg-luxe-dark border border-gray-200 dark:border-white/[0.08] px-4 py-2.5 focus:outline-none focus:border-luxe-gold text-sm rounded-lg xs:rounded-l-lg xs:rounded-r-none text-gray-700 dark:text-gray-300 placeholder:text-gray-300 dark:placeholder:text-gray-600 transition-all duration-200">
+                    <button type="submit" class="bg-luxe-gold hover:bg-yellow-500 text-white px-5 py-2.5 text-[0.7rem] uppercase tracking-[0.15em] font-semibold transition-all duration-200 rounded-lg xs:rounded-l-none xs:rounded-r-md whitespace-nowrap shadow-sm hover:shadow-md hover:shadow-luxe-gold/10">Join</button>
+                </form>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 mt-12 sm:mt-14 pt-8 border-t border-gray-100 dark:border-white/[0.05] text-center">
+            <p class="text-[0.72rem] tracking-[0.12em] text-gray-300 dark:text-gray-600 uppercase font-light">&copy; {% now "Y" %} LUXE MEN. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="md:hidden fixed bottom-0 w-full z-50 bg-white/95 dark:bg-luxe-dark/95 backdrop-blur-xl border-t border-gray-100 dark:border-white/[0.05] transition-all duration-300 safe-bottom" aria-label="Primary mobile navigation">
+        <div class="flex justify-around items-stretch h-[3.5rem]">
+            <a href="/" class="bottom-nav-item flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-luxe-gold dark:text-gray-500 dark:hover:text-luxe-gold transition-colors duration-200">
+                <svg class="w-[1.2rem] h-[1.2rem] mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-[9px] uppercase tracking-[0.12em] font-semibold">Home</span>
+            </a>
+            <a href="{% url 'products:shop' %}" class="bottom-nav-item flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-luxe-gold dark:text-gray-500 dark:hover:text-luxe-gold transition-colors duration-200">
+                <svg class="w-[1.2rem] h-[1.2rem] mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <span class="text-[9px] uppercase tracking-[0.12em] font-semibold">Shop</span>
+            </a>
+            <a href="/cart/" class="bottom-nav-item flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-luxe-gold dark:text-gray-500 dark:hover:text-luxe-gold transition-colors duration-200 relative">
+                <div class="relative">
+                    <svg class="w-[1.2rem] h-[1.2rem] mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span class="absolute -top-1 -right-2.5 bg-luxe-gold text-white text-[9px] font-bold rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center cart-count-badge pointer-events-none shadow-sm">{{ cart_count|default:"0" }}</span>
+                </div>
+                <span class="text-[9px] uppercase tracking-[0.12em] font-semibold">Cart</span>
+            </a>
+            <a href="{% url 'accounts:profile' %}" class="bottom-nav-item flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-luxe-gold dark:text-gray-500 dark:hover:text-luxe-gold transition-colors duration-200">
+                <svg class="w-[1.2rem] h-[1.2rem] mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span class="text-[9px] uppercase tracking-[0.12em] font-semibold">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- HTMX — declarative AJAX for Django -->
+    <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+
+    {% block extra_scripts %}{% endblock %}
+
+    <script>
+        function buildPreloaderWord(el, baseDelay) {
+            const text = el.getAttribute('data-word');
+            if (!text) return;
+            el.textContent = '';
+            [...text].forEach((ch, i) => {
+                const span = document.createElement('span');
+                span.className = 'char';
+                span.textContent = ch;
+                span.style.animationDelay = `${baseDelay + i * 45}ms`;
+                el.appendChild(span);
+            });
+        }
+
+        function startPreloader() {
+            const preloader = document.getElementById('site-preloader');
+            if (!preloader) return;
+
+            const words = document.querySelectorAll('#site-preloader .word');
+            if (words.length) {
+                buildPreloaderWord(words[0], 900);
+                buildPreloaderWord(words[1], 1150);
+            }
+
+            const fill = document.getElementById('site-preloader-fill');
+            const pct = document.getElementById('site-preloader-percent');
+            if (!fill || !pct) return;
+
+            const duration = 1200;
+            const start = performance.now() + 900;
+
+            function tick(now) {
+                const t = Math.min(Math.max((now - start) / duration, 0), 1);
+                const eased = 1 - Math.pow(1 - t, 3);
+                fill.style.width = `${eased * 100}%`;
+                pct.textContent = String(Math.round(eased * 100)).padStart(2, '0');
+                if (t < 1) {
+                    requestAnimationFrame(tick);
+                }
+            }
+
+            requestAnimationFrame(tick);
+
+            window.setTimeout(() => {
+                preloader.classList.add('exit');
+                window.setTimeout(() => preloader.remove(), 400);
+            }, 1100);
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('load', startPreloader);
+        } else {
+            startPreloader();
+        }
+    </script>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.5.0/dist/cdn.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('page-ready');
+        });
+
+        function showToast(message, type = 'info', title = '') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `${title ? `<div class="toast-title">${title}</div>` : ''}<div class="toast-message">${message}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('fade-out'), 4000);
+            setTimeout(() => toast.remove(), 4500);
+        }
+
+        function updateCartCount(count) {
+            // Update all cart count badges everywhere on the page
+            document.querySelectorAll('[id="nav-cart-count"], .cart-count-badge').forEach(el => {
+                el.textContent = count;
+            });
+        }
+
+        function configureBackButton() {
+            const backButton = document.getElementById('browser-back-button');
+            if (!backButton) return;
+            if (window.history.length > 1) {
+                backButton.classList.remove('hidden');
+                backButton.addEventListener('click', () => window.history.back());
+            }
+            document.addEventListener('alpine:init', () => {
+                if (document.body.classList.contains('dark')) {
+                    backButton.classList.add('dark');
+                }
+            });
+        }
+
+        configureBackButton();
+
+        async function submitAddToCartForm(form) {
+            const formData = new FormData(form);
+            const button = form.querySelector('button[type="submit"]');
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Adding...';
+            }
+
+            try {
+                const response = await fetch('{% url "orders:add_to_cart" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+                const data = await response.json().catch(() => ({}));
+                if (data.success) {
+                    updateCartCount(data.cart_total_items ?? 0);
+                    // Animate all cart badges
+                    document.querySelectorAll('[id="nav-cart-count"], .cart-count-badge').forEach(el => {
+                        el.classList.add('badge-pulse');
+                        setTimeout(() => el.classList.remove('badge-pulse'), 350);
+                    });
+                    // Show toast
+                    showCartToast(data.message || 'Item added to cart!');
+                } else {
+                    showCartToast(data.message || 'Could not add item.', true);
+                }
+            } catch (err) {
+                console.error('Error adding to cart', err);
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = 'Add to Cart';
+                }
+            }
+        }
+
+        function showCartToast(message, isError = false) {
+            const existing = document.getElementById('cart-toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.id = 'cart-toast';
+            toast.className = `fixed top-20 sm:top-24 inset-x-4 sm:inset-x-auto sm:right-4 sm:max-w-xs z-[9999] px-5 py-3.5 rounded-xl shadow-2xl text-sm font-medium flex items-center gap-2.5 transition-all duration-300 transform translate-y-[-1rem] sm:translate-y-0 sm:translate-x-full opacity-0 sm:opacity-100 ${isError ? 'bg-red-500 text-white' : 'bg-gray-900 dark:bg-[#1a1a1a] text-white border border-white/[0.08]'}`;
+            toast.innerHTML = isError
+                ? `<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>${message}`
+                : `<svg class="w-4 h-4 shrink-0 text-luxe-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>${message}`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-[-1rem]', 'sm:translate-x-full', 'opacity-0');
+                toast.classList.add('translate-y-0', 'sm:translate-x-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Notifications: fetch recent and wire up interactions
+        async function fetchRecentNotifications() {
+            try {
+                const res = await fetch('{% url "notifications:api_recent" %}', { credentials: 'same-origin' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const list = document.getElementById('notif-list');
+                const countEl = document.getElementById('nav-notif-count');
+                list.innerHTML = '';
+                let unread = 0;
+                (data.notifications || []).forEach(n => {
+                    const item = document.createElement('a');
+                    item.href = n.url || '#';
+                    item.className = 'block px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/[0.03] text-sm transition-colors duration-150';
+                    item.innerHTML = `<div class="flex items-start gap-3"><div class="flex-1 min-w-0"><div class="font-medium text-sm text-gray-900 dark:text-white truncate">${n.title || ''}</div><div class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 line-clamp-2">${n.message || ''}</div></div><div class="text-[10px] text-gray-300 dark:text-gray-600 whitespace-nowrap mt-0.5">${new Date(n.created_at).toLocaleTimeString()}</div></div>`;
+                    list.appendChild(item);
+                    if (!n.is_read) unread += 1;
+                });
+                countEl.textContent = String(unread || 0);
+            } catch (err) {
+                console.error('Could not fetch notifications', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // populate on load
+            fetchRecentNotifications();
+
+            // mark all read button
+            const markAllBtn = document.getElementById('notif-mark-all');
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        const res = await fetch('{% url "notifications:mark_all_read" %}', {
+                            method: 'POST',
+                            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                        });
+                        if (res.ok) {
+                            fetchRecentNotifications();
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    }
+                });
+            }
+        });
+
+        async function toggleWishlist(productId, btnElement) {
+            {% if not request.user.is_authenticated %}
+                alert("Please log in to save items to your wishlist.");
+                window.location.href = "{% url 'accounts:login' %}?next={{ request.path }}";
+                return;
+            {% endif %}
+
+            try {
+                const response = await fetch(`/products/${productId}/wishlist/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                const icon = btnElement.querySelector('svg');
+                if (data.status === 'added') {
+                    icon.classList.remove('text-gray-400');
+                    icon.classList.add('text-red-500', 'fill-current');
+                } else {
+                    icon.classList.add('text-gray-400');
+                    icon.classList.remove('text-red-500', 'fill-current');
+                }
+            } catch (err) {
+                console.error('Error toggling wishlist', err);
+            }
+        }
+
+        {% if request.user.is_authenticated %}
+        (function() {
+            const countBadge = document.getElementById('nav-notif-count');
+            const getWsProtocol = () => window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const socketUrl = `${getWsProtocol()}://${window.location.host}/ws/notifications/`;
+            const socket = new WebSocket(socketUrl);
+
+            const setBadgeCount = (count) => {
+                if (!countBadge) return;
+                countBadge.textContent = Number(count || 0);
+            };
+
+            const toast = (message) => {
+                const toastEl = document.createElement('div');
+                toastEl.className = 'fixed bottom-20 md:bottom-4 inset-x-4 md:inset-x-auto md:right-4 md:max-w-sm bg-gray-900 dark:bg-[#1a1a1a] text-white rounded-xl shadow-2xl p-4 border border-white/[0.08]';
+                toastEl.style.zIndex = '9999';
+                toastEl.innerHTML = `<strong class="block font-semibold text-sm">New notification</strong><p class="mt-1.5 text-sm leading-relaxed text-gray-300 dark:text-gray-400">${message}</p>`;
+                document.body.appendChild(toastEl);
+                setTimeout(() => toastEl.remove(), 7000);
+            };
+
+            socket.addEventListener('message', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'notification' && data.payload) {
+                        const currentCount = Number(countBadge?.textContent || 0) || 0;
+                        setBadgeCount(currentCount + 1);
+                        toast(data.payload.title + '\n' + data.payload.message);
+                    }
+                } catch (error) {
+                    console.error('Notification socket parse error', error);
+                }
+            });
+
+            socket.addEventListener('close', () => {
+                console.info('Notification socket closed.');
+            });
+
+            socket.addEventListener('error', (error) => {
+                console.error('Notification socket error', error);
+            });
+        })();
+        {% endif %}
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
+                    .then((registration) => {
+                        console.info('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.error('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

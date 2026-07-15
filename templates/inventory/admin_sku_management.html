@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}SKU Management — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="font-serif text-3xl font-bold">SKU Management</h1>
+      <p class="text-sm text-gray-500">Review variant stock across warehouses and identify SKU inventory issues.</p>
+    </div>
+    <form method="post" action="{% url 'inventory:admin_low_stock_alerts' %}" class="inline">
+      {% csrf_token %}
+      <button type="submit" class="inline-flex items-center rounded-full bg-red-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white hover:bg-red-600 transition">Send low stock alerts</button>
+    </form>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded-3xl border border-gray-200 shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">SKU</th>
+          <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Product</th>
+          <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Total Stock</th>
+          <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Low Stock</th>
+          <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Warehouses</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for row in sku_rows %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-900">{{ row.variant.sku }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ row.variant.product.name }}{% if row.variant %} — {{ row.variant }}{% endif %}</td>
+          <td class="px-4 py-3 font-semibold text-gray-900">{{ row.total_stock }}</td>
+          <td class="px-4 py-3">
+            {% if row.low_stock %}
+            <span class="inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-1 text-[0.72rem] font-semibold">Yes</span>
+            {% else %}
+            <span class="inline-flex items-center rounded-full bg-green-100 text-green-700 px-2 py-1 text-[0.72rem] font-semibold">No</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-gray-600">
+            <ul class="space-y-1">
+              {% for stock in row.warehouses %}
+              <li>{{ stock.warehouse.name }}: {{ stock.quantity }}{% if stock.quantity <= stock.low_stock_threshold %} <span class="text-red-500">(low)</span>{% endif %}</li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-4 py-8 text-center text-gray-500">No SKUs found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

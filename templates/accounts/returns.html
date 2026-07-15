@@ -1,0 +1,26 @@
+{% extends "accounts/dashboard_base.html" %}
+
+{% block dashboard_title %}Returns & Refunds{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+  <div class="rounded-[16px] border border-gray-200/70 bg-white/90 p-6 dark:bg-luxe-gray/90">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Your return requests</h2>
+    {% if returns %}
+    <div class="mt-4 space-y-3">
+      {% for r in returns %}
+      <div class="rounded-2xl border border-gray-100 p-4 flex items-center justify-between">
+        <div>
+          <p class="font-medium text-gray-900 dark:text-white">Return for Order #{{ r.order.order_number }}</p>
+          <p class="text-sm text-gray-500">Requested {{ r.created_at|date:"M d, Y" }}</p>
+        </div>
+        <div class="text-sm text-gray-700 dark:text-gray-300">{{ r.get_status_display }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500 mt-4">You have no active return requests.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

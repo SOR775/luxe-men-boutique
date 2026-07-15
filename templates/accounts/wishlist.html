@@ -1,0 +1,47 @@
+{% extends "accounts/dashboard_base.html" %}
+
+{% block dashboard_title %}My Wishlist{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+  
+  {% if wishlist_items %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for item in wishlist_items %}
+    <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-sm relative group">
+      <button type="button" onclick="toggleWishlist('{{ item.product.id }}', this); setTimeout(() => window.location.reload(), 500);" class="absolute top-2 right-2 p-2 bg-white dark:bg-luxe-gray rounded-full shadow-sm hover:scale-110 transition z-10 text-red-500 fill-current">
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </button>
+      
+      <a href="{% url 'products:detail' item.product.slug %}" class="block overflow-hidden">
+        {% if item.product.primary_images.0 %}
+        <img src="{{ item.product.primary_images.0.image.url }}" alt="{{ item.product.name }}" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
+        {% else %}
+        <div class="w-full h-64 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+          No Image
+        </div>
+        {% endif %}
+      </a>
+      
+      <div class="p-4">
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">
+          <a href="{% url 'products:detail' item.product.slug %}">{{ item.product.name }}</a>
+        </h3>
+        <p class="text-gray-500 text-sm mt-1">${{ item.product.base_price }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 p-12 text-center">
+    <p class="text-gray-500 text-lg mb-4">Your wishlist is currently empty.</p>
+    <a href="{% url 'products:shop' %}" class="inline-block px-8 py-3 bg-luxe-gold text-white font-bold uppercase tracking-wider text-xs hover:bg-yellow-600 transition rounded-sm">
+      Continue Shopping
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

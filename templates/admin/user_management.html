@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}User Management — Admin Dashboard{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Manage users, suspensions, and account status</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+      <form method="get" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Search</label>
+            <input type="text" name="search" value="{{ search_query }}" 
+              placeholder="Email, username, name..."
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">User Type</label>
+            <select name="type" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+              <option value="">All Users</option>
+              <option value="sellers" {% if user_type == 'sellers' %}selected{% endif %}>Sellers</option>
+              <option value="customers" {% if user_type == 'customers' %}selected{% endif %}>Customers</option>
+              <option value="admin" {% if user_type == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Status</label>
+            <select name="status" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+              <option value="">All Status</option>
+              <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+              <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+              <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-luxe-gold text-white rounded-lg font-semibold">
+          🔍 Filter
+        </button>
+      </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">User</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Type</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Joined</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            {% for user in users %}
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+              <td class="px-6 py-3">
+                <div class="font-semibold text-gray-900 dark:text-white">{{ user.get_full_name }}</div>
+                <div class="text-sm text-gray-500">@{{ user.username }}</div>
+              </td>
+              <td class="px-6 py-3 text-gray-600 dark:text-gray-400">{{ user.email }}</td>
+              <td class="px-6 py-3">
+                {% if user.is_staff %}<span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Admin</span>
+                {% elif user.sales.exists %}<span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Seller</span>
+                {% else %}<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Customer</span>{% endif %}
+              </td>
+              <td class="px-6 py-3">
+                {% if user.suspension.is_active %}
+                  <span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
+                    {{ user.suspension.get_suspension_type_display }}
+                  </span>
+                {% elif user.is_active %}
+                  <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Active</span>
+                {% else %}
+                  <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-3 text-sm text-gray-500">{{ user.created_at|date:"M d, Y" }}</td>
+              <td class="px-6 py-3">
+                <div class="flex gap-2">
+                  {% if user.suspension.is_active %}
+                  <form method="post" action="{% url 'dashboard:unsuspend_user' user.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                      Unsuspend
+                    </button>
+                  </form>
+                  {% else %}
+                  <button onclick="openSuspendModal('{{ user.id }}', '{{ user.get_full_name }}')" 
+                    class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">
+                    Suspend
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="px-6 py-8 text-center text-gray-500">No users found</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Suspend Modal -->
+    <div id="suspendModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+      <div class="bg-white dark:bg-luxe-gray rounded-lg max-w-md w-full mx-4 p-6">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Suspend User</h3>
+        <form id="suspendForm" method="post">
+          {% csrf_token %}
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Suspension Type
+              </label>
+              <select name="suspension_type" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+                <option value="suspended">Temporary Suspension</option>
+                <option value="banned">Permanent Ban</option>
+              </select>
+            </div>
+            <div id="daysInput" class="block">
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Days</label>
+              <input type="number" name="days" value="7" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+              <textarea name="reason" rows="3" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white" required></textarea>
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700">
+                Confirm Suspension
+              </button>
+              <button type="button" onclick="closeSuspendModal()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-900 rounded-lg font-semibold">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openSuspendModal(userId, userName) {
+    document.getElementById('suspendModal').classList.remove('hidden');
+    const form = document.getElementById('suspendForm');
+    form.action = `/dashboard/users/${userId}/suspend/`;
+  }
+  
+  function closeSuspendModal() {
+    document.getElementById('suspendModal').classList.add('hidden');
+  }
+
+  document.querySelector('select[name="suspension_type"]').addEventListener('change', function() {
+    const daysInput = document.getElementById('daysInput');
+    daysInput.style.display = this.value === 'suspended' ? 'block' : 'none';
+  });
+</script>
+{% endblock %}

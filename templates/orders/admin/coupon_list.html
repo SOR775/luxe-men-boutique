@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Coupon Management — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold">Coupon Management</h1>
+      <p class="text-sm text-gray-500">Create and manage discount codes, limits, and validity.</p>
+    </div>
+    <a href="{% url 'orders:admin_coupon_add' %}" class="inline-flex items-center rounded bg-luxe-gold px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-400">Add Coupon</a>
+  </div>
+
+  <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Code</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Type</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Value</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Valid Until</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
+          <th class="px-4 py-3 text-right font-semibold text-gray-700">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 bg-white">
+        {% for coupon in coupons %}
+        <tr>
+          <td class="px-4 py-4">{{ coupon.code }}</td>
+          <td class="px-4 py-4">{{ coupon.get_discount_type_display }}</td>
+          <td class="px-4 py-4">{{ coupon.discount_value }}</td>
+          <td class="px-4 py-4">{{ coupon.valid_until|date:'Y-m-d H:i' }}</td>
+          <td class="px-4 py-4">{% if coupon.is_active %}Active{% else %}Inactive{% endif %}</td>
+          <td class="px-4 py-4 text-right">
+            <a href="{% url 'orders:admin_coupon_edit' coupon.pk %}" class="text-luxe-gold hover:underline">Edit</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">No coupons created yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

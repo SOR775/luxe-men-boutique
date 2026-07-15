@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Checkout — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-luxe-dark dark:via-luxe-gray dark:to-luxe-dark pt-4 sm:pt-6">
+
+  <!-- Header -->
+  <div class="bg-white/80 dark:bg-luxe-gray/90 border-b border-gray-200/70 dark:border-gray-800 py-6 sm:py-8 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <a href="/" class="font-serif text-lg sm:text-xl font-bold tracking-widest text-gray-900 dark:text-white">LUXE<span class="text-luxe-gold">MEN</span></a>
+        <span class="text-gray-300">&rsaquo;</span>
+        <span class="text-xs sm:text-sm text-gray-500">Secure Checkout</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <form method="post" action="{% url 'checkout:checkout' %}">
+      {% csrf_token %}
+      <div class="flex flex-col lg:flex-row gap-6 lg:gap-10">
+
+        <!-- Left: Shipping Details -->
+        <div class="flex-1 space-y-6 sm:space-y-8">
+
+          <div class="rounded-2xl sm:rounded-3xl border border-gray-200/70 bg-white/90 p-5 sm:p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
+            <div class="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 class="font-serif text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Contact &amp; Shipping</h2>
+                <p class="mt-1 text-sm text-gray-500">We&rsquo;ll keep your order protected and update you at every step.</p>
+              </div>
+              <div class="rounded-full bg-luxe-gold/10 px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] text-luxe-gold shrink-0">Secure</div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="sm:col-span-2">
+                <label for="checkout-full-name" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Full Name *</label>
+                <input id="checkout-full-name" type="text" name="full_name" required
+                  autocomplete="name"
+                  value="{{ default_address.full_name|default:'' }}"
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                  placeholder="John Kamau">
+              </div>
+              <div>
+                <label for="checkout-phone" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Phone Number *</label>
+                <input id="checkout-phone" type="tel" name="phone" required
+                  autocomplete="tel" inputmode="tel"
+                  value="{{ default_address.phone|default:default_phone }}"
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                  placeholder="0712 345 678">
+              </div>
+              <div>
+                <label for="checkout-email" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Email Address *</label>
+                <input id="checkout-email" type="email" name="email" required
+                  autocomplete="email" inputmode="email"
+                  value="{{ request.user.email|default:'' }}"
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                  placeholder="john@example.com">
+              </div>
+              <div class="sm:col-span-2">
+                <label for="checkout-address" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Street Address *</label>
+                <input id="checkout-address" type="text" name="address" required
+                  autocomplete="street-address"
+                  value="{{ default_address.address_line1|default:'' }}"
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                  placeholder="123 Westlands Road, Apt 4B">
+              </div>
+              <div>
+                <label for="checkout-city" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">City *</label>
+                <input id="checkout-city" type="text" name="city" required
+                  autocomplete="address-level2"
+                  value="{{ default_address.city|default:'Nairobi' }}"
+                  class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                  placeholder="Nairobi">
+              </div>
+              <div class="sm:col-span-2 rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-4 dark:border-gray-700 dark:bg-luxe-dark/70">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Delivery location pin <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Tap the map to choose the exact delivery spot or use your current location if available.</p>
+                  </div>
+                  <button type="button" id="use-location-btn" class="rounded-full border border-luxe-gold/30 bg-white px-3 py-2 text-sm font-semibold text-luxe-gold hover:border-luxe-gold hover:bg-luxe-gold/5">Use my current location</button>
+                </div>
+                <div class="mt-3 grid grid-cols-1 gap-3">
+                  <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <iframe
+                      id="delivery-map"
+                      title="Choose delivery location"
+                      class="h-64 w-full"
+                      src="https://www.openstreetmap.org/export/embed.html?bbox=36.75,-1.35,36.90,-1.20&amp;layer=mapnik"
+                      loading="lazy"
+                      referrerpolicy="strict-origin-when-cross-origin"
+                    ></iframe>
+                  </div>
+                  <p id="location-help-text" class="text-sm text-gray-500 dark:text-gray-400">Use the current location button or enter the coordinates manually below.</p>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" id="confirm-location-btn" class="rounded-full border border-luxe-gold/30 bg-luxe-gold px-3 py-2 text-sm font-semibold text-white hover:bg-yellow-600">Confirm selected location</button>
+                    <span id="location-status" class="text-sm text-gray-500 dark:text-gray-400">No location selected yet.</span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" id="delivery-latitude" name="delivery_latitude" value="" inputmode="decimal"
+                      class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                      placeholder="Latitude">
+                    <input type="text" id="delivery-longitude" name="delivery_longitude" value="" inputmode="decimal"
+                      class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                      placeholder="Longitude">
+                  </div>
+                  <input type="text" id="delivery-location-note" name="delivery_location_note" value=""
+                    class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg"
+                    placeholder="E.g. Gate B, second floor, or near the main supermarket">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shipping Method -->
+          {% if shipping_rates %}
+          <div class="rounded-2xl sm:rounded-3xl border border-gray-200/70 bg-white/90 p-5 sm:p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
+            <h2 class="font-serif text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-5">Delivery Method</h2>
+            <div class="space-y-3">
+              {% for rate in shipping_rates %}
+              <label class="flex items-center gap-3 sm:gap-4 border-2 border-gray-100 dark:border-gray-700 p-3.5 sm:p-4 cursor-pointer hover:border-luxe-gold active:bg-luxe-gold/5 transition rounded-xl has-[:checked]:border-luxe-gold">
+                <input type="radio" name="shipping_rate" value="{{ rate.id }}"
+                  {% if forloop.first %}checked{% endif %}
+                  class="accent-luxe-gold w-4 h-4 shrink-0">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ rate.name }}
+                    <span class="text-xs text-gray-400 font-normal ml-1">({{ rate.zone.name }})</span>
+                  </p>
+                  <p class="text-xs text-gray-400">Estimated: {{ rate.delivery_estimate }}</p>
+                  {% if rate.free_above %}
+                  <p class="text-xs text-green-600">Free for orders above KES {{ rate.free_above }}</p>
+                  {% endif %}
+                </div>
+                <span class="text-sm font-bold text-luxe-gold shrink-0">KES {{ rate.price }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Order Notes -->
+          <div class="rounded-2xl sm:rounded-3xl border border-gray-200/70 bg-white/90 p-5 sm:p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
+            <h2 class="font-serif text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Order Notes <span class="text-sm font-normal text-gray-400">(Optional)</span></h2>
+            <textarea name="notes" rows="3"
+              class="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-luxe-dark px-4 py-3 text-base sm:text-sm focus:outline-none focus:border-luxe-gold dark:text-white transition rounded-lg resize-none"
+              placeholder="Special instructions, gift notes, or delivery preferences..."></textarea>
+          </div>
+        </div>
+
+        <!-- Right: Order Summary -->
+        <div class="w-full lg:w-96 shrink-0">
+          <div class="rounded-2xl sm:rounded-3xl border border-gray-200/70 bg-white/90 p-5 sm:p-6 lg:sticky lg:top-24 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
+            <h2 class="font-serif text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-5">Your Order</h2>
+
+            <!-- Items -->
+            <div class="space-y-4 mb-5 max-h-64 overflow-y-auto">
+              {% for item in items %}
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-14 shrink-0 bg-gray-100 dark:bg-gray-800 overflow-hidden rounded-lg">
+                  {% with item.variant.product.images.first as img %}
+                  {% if img %}<img src="{{ img.image.url }}" alt="{{ item.variant.product.name }}" loading="lazy" class="w-full h-full object-cover">{% endif %}
+                  {% endwith %}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold text-gray-900 dark:text-white truncate">{{ item.variant.product.name }}</p>
+                  <p class="text-xs text-gray-400">Qty: {{ item.quantity }}</p>
+                </div>
+                <p class="text-sm font-bold text-luxe-gold shrink-0">KES {{ item.line_total }}</p>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Totals -->
+            <div class="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-3 text-sm">
+              <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Subtotal</span><span>KES {{ cart.subtotal }}</span>
+              </div>
+              {% if discount and discount > 0 %}
+              <div class="flex justify-between text-green-600">
+                <span>Discount {% if coupon %}({{ coupon.code }}){% endif %}</span>
+                <span>- KES {{ discount }}</span>
+              </div>
+              {% endif %}
+              <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Shipping</span><span class="text-luxe-gold text-xs">Selected above</span>
+              </div>
+            </div>
+
+            <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mt-3">
+              <div class="flex justify-between font-bold text-lg text-gray-900 dark:text-white">
+                <span>Estimated Total</span>
+                <span class="text-luxe-gold">KES {{ cart.subtotal }}</span>
+              </div>
+            </div>
+
+            <!-- Place Order -->
+            <div class="mt-4 rounded-2xl border border-gray-200/70 bg-gray-50/80 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-luxe-dark/70 dark:text-gray-300">
+              <div class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+                <svg class="h-4 w-4 text-luxe-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                Pay safely with escrow or your preferred payment method.
+              </div>
+              <p class="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">Your order is protected until delivery and you&rsquo;ll be able to review every step before confirmation.</p>
+            </div>
+
+            <button type="submit"
+              class="mt-6 w-full bg-luxe-gold text-white py-4 font-bold uppercase tracking-widest text-sm hover:bg-yellow-600 active:scale-95 transition duration-150 flex items-center justify-center gap-2 rounded-full">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+              Place Order &amp; Pay
+            </button>
+            <p class="text-xs text-center text-gray-400 mt-3">You'll select your payment method next.</p>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const button = document.getElementById('use-location-btn');
+    const confirmButton = document.getElementById('confirm-location-btn');
+    const latInput = document.getElementById('delivery-latitude');
+    const lngInput = document.getElementById('delivery-longitude');
+    const noteInput = document.getElementById('delivery-location-note');
+    const helperText = document.getElementById('location-help-text');
+    const statusLabel = document.getElementById('location-status');
+
+    if (!button || !confirmButton || !latInput || !lngInput) return;
+
+    const updateSelection = function (lat, lng) {
+      latInput.value = lat;
+      lngInput.value = lng;
+      if (helperText) {
+        helperText.textContent = 'Location detected. Confirm it below to save it with your order.';
+      }
+      if (statusLabel) {
+        statusLabel.textContent = `Pending confirmation: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      }
+    };
+
+    confirmButton.addEventListener('click', function () {
+      if (!latInput.value || !lngInput.value) {
+        if (helperText) {
+          helperText.textContent = 'No location is selected yet. Use the button above or type coordinates manually.';
+        }
+        return;
+      }
+
+      if (statusLabel) {
+        statusLabel.textContent = `Confirmed: ${parseFloat(latInput.value).toFixed(5)}, ${parseFloat(lngInput.value).toFixed(5)}`;
+      }
+      if (noteInput.value.trim() === '') {
+        noteInput.value = 'Location confirmed from GPS';
+      }
+      if (helperText) {
+        helperText.textContent = 'Location confirmed and ready to be saved with your order.';
+      }
+    });
+
+    button.addEventListener('click', function () {
+      if (!navigator.geolocation) {
+        if (helperText) {
+          helperText.textContent = 'This browser does not support location access. You can still enter coordinates manually.';
+        }
+        if (statusLabel) {
+          statusLabel.textContent = 'Browser does not support GPS.';
+        }
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Locating...';
+
+      const geolocationOptions = {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0
+      };
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          updateSelection(position.coords.latitude, position.coords.longitude);
+          if (!noteInput.value) {
+            noteInput.value = 'GPS pin captured';
+          }
+          button.textContent = 'Location captured';
+          button.disabled = false;
+        },
+        function (error) {
+          button.disabled = false;
+          button.textContent = 'Use my current location';
+          if (helperText) {
+            helperText.textContent = 'Your browser blocked GPS access. Please enable location permission for this site in the browser settings and try again, or enter the coordinates manually below.';
+          }
+          if (statusLabel) {
+            statusLabel.textContent = 'Location permission was blocked. Please allow location access in your browser and try again.';
+          }
+          if (error.code === 1) {
+            if (noteInput) {
+              noteInput.setAttribute('placeholder', 'Location permission was blocked. Please enable it in your browser and try again, or enter coordinates manually.');
+            }
+          } else if (error.code === 2) {
+            if (noteInput) {
+              noteInput.setAttribute('placeholder', 'Your location is currently unavailable. You can still enter coordinates manually.');
+            }
+          } else if (error.code === 3) {
+            if (noteInput) {
+              noteInput.setAttribute('placeholder', 'Location lookup timed out. You can still enter coordinates manually.');
+            }
+          }
+        },
+        geolocationOptions
+      );
+    });
+  });
+</script>
+{% endblock %}

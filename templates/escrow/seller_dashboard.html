@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% block title %}Sales Dashboard - LUXE MEN{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">Sales Dashboard</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Track your orders, earnings, and wallet balance</p>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <!-- Total Sales -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Total Sales</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">KES {{ total_sales|floatformat:2 }}</p>
+          </div>
+          <span class="text-3xl">💰</span>
+        </div>
+      </div>
+
+      <!-- Wallet Balance -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Wallet Balance</p>
+            <p class="text-2xl font-bold text-luxe-gold">KES {{ wallet_balance|floatformat:2 }}</p>
+          </div>
+          <span class="text-3xl">💳</span>
+        </div>
+      </div>
+
+      <!-- Awaiting Payment -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Awaiting Payment</p>
+            <p class="text-2xl font-bold text-amber-600">KES {{ awaiting_payment|floatformat:2 }}</p>
+          </div>
+          <span class="text-3xl">⏳</span>
+        </div>
+      </div>
+
+      <!-- Total Orders -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-xl p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Total Orders</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ total_orders }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ completed_orders }} completed</p>
+          </div>
+          <span class="text-3xl">📦</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Status Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
+        <p class="text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wider font-semibold">Pending Orders</p>
+        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">{{ pending_orders }}</p>
+      </div>
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4">
+        <p class="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wider font-semibold">Shipped Orders</p>
+        <p class="text-3xl font-bold text-amber-600 dark:text-amber-400 mt-2">{{ shipped_orders }}</p>
+      </div>
+      <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-4">
+        <p class="text-xs text-green-600 dark:text-green-400 uppercase tracking-wider font-semibold">Completed Orders</p>
+        <p class="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{{ completed_orders }}</p>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if disputed_escrows %}
+    <div class="mb-6 flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-4">
+      <span class="text-2xl">🚨</span>
+      <div>
+        <p class="font-semibold text-red-800 dark:text-red-300">{{ disputed_escrows|length }} Disputed Order{{ disputed_escrows|length|pluralize }}</p>
+        <p class="text-sm text-red-600 dark:text-red-400">Please review the disputed transactions below.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Tabs -->
+    <div class="space-y-8">
+
+      <!-- Released / Completed Sales -->
+      {% if released_escrows %}
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span class="text-2xl">✅</span> Completed Sales
+        </h2>
+        <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Order #</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Buyer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Released On</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-luxe-gray divide-y divide-gray-100 dark:divide-gray-800">
+              {% for escrow in released_escrows %}
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                <td class="px-4 py-3 font-mono font-semibold text-gray-900 dark:text-white">
+                  <a href="{% url 'escrow:status' escrow_id=escrow.id %}" class="text-luxe-gold hover:underline">
+                    #{{ escrow.order.order_number }}
+                  </a>
+                </td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  {% if escrow.buyer %}{{ escrow.buyer.email }}{% else %}Guest{% endif %}
+                </td>
+                <td class="px-4 py-3 font-bold text-luxe-gold">
+                  {{ escrow.currency }} {{ escrow.amount|floatformat:2 }}
+                </td>
+                <td class="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                  {{ escrow.released_at|date:"d M Y, H:i" }}
+                </td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-500/20 dark:text-green-400">
+                    ✓ Released
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">No released orders yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Pending Escrows / Awaiting Payment -->
+      {% if pending_escrows %}
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span class="text-2xl">⏳</span> Pending Orders (Awaiting Payment Release)
+        </h2>
+        <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Order #</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Buyer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Current Status</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-luxe-gray divide-y divide-gray-100 dark:divide-gray-800">
+              {% for escrow in pending_escrows %}
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                <td class="px-4 py-3 font-mono font-semibold text-gray-900 dark:text-white">
+                  <a href="{% url 'escrow:status' escrow_id=escrow.id %}" class="text-luxe-gold hover:underline">
+                    #{{ escrow.order.order_number }}
+                  </a>
+                </td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  {% if escrow.buyer %}{{ escrow.buyer.email }}{% else %}Guest{% endif %}
+                </td>
+                <td class="px-4 py-3 font-bold text-luxe-gold">
+                  {{ escrow.currency }} {{ escrow.amount|floatformat:2 }}
+                </td>
+                <td class="px-4 py-3 text-xs">
+                  <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    {{ escrow.get_status_display }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                  {{ escrow.created_at|date:"d M Y" }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">All orders have been paid! 🎉</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Disputed Orders -->
+      {% if disputed_escrows %}
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span class="text-2xl">🚨</span> Disputed Orders
+        </h2>
+        <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Order #</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Buyer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dispute Reason</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Opened</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-luxe-gray divide-y divide-gray-100 dark:divide-gray-800">
+              {% for escrow in disputed_escrows %}
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                <td class="px-4 py-3 font-mono font-semibold text-gray-900 dark:text-white">
+                  <a href="{% url 'escrow:status' escrow_id=escrow.id %}" class="text-luxe-gold hover:underline">
+                    #{{ escrow.order.order_number }}
+                  </a>
+                </td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                  {% if escrow.buyer %}{{ escrow.buyer.email }}{% else %}Guest{% endif %}
+                </td>
+                <td class="px-4 py-3 font-bold text-red-600">
+                  {{ escrow.currency }} {{ escrow.amount|floatformat:2 }}
+                </td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 text-xs">
+                  {{ escrow.dispute_reason|truncatewords:15 }}
+                </td>
+                <td class="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                  {{ escrow.dispute_opened_at|date:"d M Y, H:i" }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Recent Wallet Transactions -->
+      {% if recent_credits %}
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span class="text-2xl">📊</span> Recent Wallet Activity
+        </h2>
+        <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-luxe-gray divide-y divide-gray-100 dark:divide-gray-800">
+              {% for txn in recent_credits %}
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                <td class="px-4 py-3">
+                  <span class="inline-flex rounded-full {% if txn.transaction_type == 'credit' %}bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400{% else %}bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400{% endif %} px-2.5 py-1 text-xs font-semibold">
+                    {% if txn.transaction_type == 'credit' %}➕ Credit{% else %}➖ Debit{% endif %}
+                  </span>
+                </td>
+                <td class="px-4 py-3 font-bold {% if txn.transaction_type == 'credit' %}text-green-600{% else %}text-red-600{% endif %}">
+                  {% if txn.transaction_type == 'credit' %}+{% else %}-{% endif %} KES {{ txn.amount|floatformat:2 }}
+                </td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 text-xs">
+                  {{ txn.description }}
+                </td>
+                <td class="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                  {{ txn.created_at|date:"d M Y, H:i" }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">No transactions yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .status-badge {
+    display: inline-flex;
+    border-radius: 9999px;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}

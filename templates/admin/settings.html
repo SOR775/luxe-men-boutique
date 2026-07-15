@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}System Settings — Admin Dashboard{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark py-10">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">System Settings</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Manage taxes, fees, shipping, and general settings</p>
+    </div>
+
+    <!-- Settings Form -->
+    <form method="post" action="{% url 'dashboard:update_settings' %}" class="space-y-8">
+      {% csrf_token %}
+
+      <!-- Tax Settings -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Tax Settings</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Default Tax Rate (%)
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="number" name="default_tax_rate" value="{{ settings.default_tax_rate }}" step="0.01" 
+                class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+              <span class="text-sm text-gray-500">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commission & Fees -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Commission & Fees</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Platform Commission Rate (%)
+            </label>
+            <input type="number" name="platform_commission_rate" value="{{ settings.platform_commission_rate }}" step="0.01" 
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">Commission taken from each seller sale</p>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Payment Processing Fee (%)
+            </label>
+            <input type="number" name="payment_processing_fee" value="{{ settings.payment_processing_fee }}" step="0.01" 
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">Fee for payment processing (M-Pesa, etc)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping Settings -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Shipping Settings</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Free Shipping Threshold (KES)
+            </label>
+            <input type="number" name="free_shipping_threshold" value="{{ settings.free_shipping_threshold }}" step="100" 
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">Orders above this amount qualify for free shipping</p>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Base Shipping Cost (KES)
+            </label>
+            <input type="number" name="base_shipping_cost" value="{{ settings.base_shipping_cost }}" step="50" 
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">Default shipping cost for orders</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Escrow Settings -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Escrow Settings</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Auto-Release Days
+            </label>
+            <input type="number" name="auto_release_days" value="{{ settings.auto_release_days }}" min="1" 
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">Days before automatically releasing escrow to seller</p>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Dispute Resolution Days
+            </label>
+            <input type="number" name="dispute_resolution_days" value="{{ settings.dispute_resolution_days }}" min="1" 
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white">
+            <p class="text-xs text-gray-500 mt-1">Days given to resolve disputes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- General Settings -->
+      <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">General Settings</h2>
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" name="maintenance_mode" id="maintenanceMode" {% if settings.maintenance_mode %}checked{% endif %} 
+              class="w-4 h-4 rounded">
+            <label for="maintenanceMode" class="font-semibold text-gray-700 dark:text-gray-300">
+              Enable Maintenance Mode
+            </label>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Maintenance Message
+            </label>
+            <textarea name="maintenance_message" rows="2" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white" 
+              placeholder="Message to display when maintenance mode is on...">{{ settings.maintenance_message }}</textarea>
+          </div>
+          <div class="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <input type="checkbox" name="allow_new_sellers" id="allowNewSellers" {% if settings.allow_new_sellers %}checked{% endif %} 
+              class="w-4 h-4 rounded">
+            <label for="allowNewSellers" class="font-semibold text-gray-700 dark:text-gray-300">
+              Allow New Seller Registration
+            </label>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" name="require_seller_verification" id="requireVerification" {% if settings.require_seller_verification %}checked{% endif %} 
+              class="w-4 h-4 rounded">
+            <label for="requireVerification" class="font-semibold text-gray-700 dark:text-gray-300">
+              Require Seller Verification Before Selling
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Last Updated -->
+      <div class="text-sm text-gray-500 dark:text-gray-400">
+        Last updated: {{ settings.updated_at|date:"M d, Y H:i" }}
+        {% if settings.updated_by %} by {{ settings.updated_by.get_full_name }}{% endif %}
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex gap-2">
+        <button type="submit" class="px-6 py-3 bg-luxe-gold text-white rounded-lg font-semibold hover:bg-yellow-600">
+          💾 Save Settings
+        </button>
+        <a href="{% url 'dashboard:system_health' %}" class="px-6 py-3 border border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-800">
+          ← Back
+        </a>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

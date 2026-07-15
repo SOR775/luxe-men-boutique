@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Dispute Resolution — Admin Dashboard{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">Dispute Resolution</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Review and resolve escrow disputes</p>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+      <a href="?status=disputed" class="px-4 py-2 font-semibold {% if dispute_status == 'disputed' %}text-luxe-gold border-b-2 border-luxe-gold{% else %}text-gray-600 dark:text-gray-400{% endif %}">
+        🔴 Pending ({{ pending_count }})
+      </a>
+      <a href="?status=resolved" class="px-4 py-2 font-semibold {% if dispute_status == 'resolved' %}text-luxe-gold border-b-2 border-luxe-gold{% else %}text-gray-600 dark:text-gray-400{% endif %}">
+        ✅ Resolved ({{ resolved_count }})
+      </a>
+    </div>
+
+    <!-- Disputes Table -->
+    <div class="space-y-4">
+      {% for dispute in disputes %}
+      <div class="bg-white dark:bg-luxe-gray border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Order #{{ dispute.order.order_number }}</h3>
+            <p class="text-sm text-gray-500">Dispute opened {{ dispute.dispute_opened_at|date:"M d, Y H:i" }}</p>
+          </div>
+          <span class="text-xs font-semibold {% if dispute.status == 'disputed' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} px-3 py-1 rounded">
+            {{ dispute.get_status_display }}
+          </span>
+        </div>
+
+        <!-- Parties -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <p class="text-xs text-gray-500 uppercase">Buyer</p>
+            <p class="font-semibold text-gray-900 dark:text-white">{{ dispute.buyer.get_full_name }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">{{ dispute.buyer.email }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 uppercase">Seller</p>
+            <p class="font-semibold text-gray-900 dark:text-white">{{ dispute.order.seller.get_full_name }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">{{ dispute.order.seller.email }}</p>
+          </div>
+        </div>
+
+        <!-- Dispute Details -->
+        <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <p class="text-xs text-gray-500 uppercase mb-2">Dispute Reason</p>
+          <p class="text-gray-900 dark:text-white">{{ dispute.dispute_reason }}</p>
+          {% if dispute.dispute_evidence %}
+          <p class="text-xs text-gray-500 uppercase mt-3 mb-2">Evidence</p>
+          <p class="text-gray-600 dark:text-gray-400">{{ dispute.dispute_evidence }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Order Details -->
+        <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <p class="text-xs text-gray-500 uppercase mb-2">Order Amount</p>
+          <p class="text-2xl font-bold text-luxe-gold">KES {{ dispute.amount }}</p>
+        </div>
+
+        <!-- Admin Resolution (if resolved) -->
+        {% if dispute.status != 'disputed' %}
+        <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900/20 p-3 rounded">
+          <p class="text-xs text-green-700 dark:text-green-300 uppercase font-semibold mb-1">Resolution</p>
+          <p class="text-green-900 dark:text-green-100">{{ dispute.get_status_display }}</p>
+          {% if dispute.admin_resolution_notes %}
+          <p class="text-sm text-green-800 dark:text-green-200 mt-2">{{ dispute.admin_resolution_notes }}</p>
+          {% endif %}
+        </div>
+        {% else %}
+
+        <!-- Resolution Form -->
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+          <form method="post" action="{% url 'dashboard:resolve_dispute' dispute.id %}">
+            {% csrf_token %}
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Resolution Action
+                </label>
+                <select name="action" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white" required>
+                  <option value="">-- Select Action --</option>
+                  <option value="release">Release Funds to Seller</option>
+                  <option value="refund">Refund Buyer</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Admin Notes
+                </label>
+                <textarea name="admin_notes" rows="3" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-white" placeholder="Document your resolution decision..."></textarea>
+              </div>
+              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
+                ✓ Resolve Dispute
+              </button>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="text-center py-8 text-gray-500">
+        <p>No disputes found</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

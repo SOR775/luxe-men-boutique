@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Category Management — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold">Category Management</h1>
+      <p class="text-sm text-gray-500">Manage collections, hierarchy, and category visibility.</p>
+    </div>
+    <a href="{% url 'products:admin_category_add' %}" class="inline-flex items-center rounded bg-luxe-gold px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-400">Add Category</a>
+  </div>
+
+  <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Parent</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
+          <th class="px-4 py-3 text-right font-semibold text-gray-700">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 bg-white">
+        {% for category in categories %}
+        <tr>
+          <td class="px-4 py-4">{{ category.name }}</td>
+          <td class="px-4 py-4">{{ category.parent }}</td>
+          <td class="px-4 py-4">{% if category.is_active %}Active{% else %}Inactive{% endif %}</td>
+          <td class="px-4 py-4 text-right">
+            <a href="{% url 'products:admin_category_edit' category.pk %}" class="text-luxe-gold hover:underline">Edit</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">No categories yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

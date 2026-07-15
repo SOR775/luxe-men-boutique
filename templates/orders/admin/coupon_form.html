@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{% if is_edit %}Edit Coupon{% else %}Add Coupon{% endif %} — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold">{% if is_edit %}Edit Coupon{% else %}Add Coupon{% endif %}</h1>
+    <p class="text-sm text-gray-500">{% if is_edit %}Update coupon settings.{% else %}Create a new discount code.{% endif %}</p>
+  </div>
+
+  <div class="rounded-lg border bg-white p-8 shadow-sm">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Code</label>
+        {{ form.code }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Type</label>
+        {{ form.discount_type }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Value</label>
+        {{ form.discount_value }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Minimum Order Amount</label>
+        {{ form.minimum_order_amount }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Max Uses</label>
+        {{ form.max_uses }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Valid From</label>
+        {{ form.valid_from }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Valid Until</label>
+        {{ form.valid_until }}
+      </div>
+      <div class="flex items-center gap-4">
+        <label class="text-sm font-semibold text-gray-700">Active</label>
+        {{ form.is_active }}
+      </div>
+      <div class="flex items-center gap-3 mt-6">
+        <button type="submit" class="rounded bg-luxe-gold px-5 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-400">Save Coupon</button>
+        <a href="{% url 'orders:admin_coupons' %}" class="text-sm text-gray-500 hover:underline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

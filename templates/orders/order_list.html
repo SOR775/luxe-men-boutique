@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My Orders — Luxe Men{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-luxe-dark dark:via-luxe-gray dark:to-luxe-dark pt-6">
+  <div class="bg-white/80 dark:bg-luxe-gray/90 border-b border-gray-200/70 dark:border-gray-800 py-8 sm:py-10 backdrop-blur">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="font-serif text-3xl font-bold text-gray-900 dark:text-white">My Orders</h1>
+    </div>
+  </div>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    {% if orders %}
+    <div class="space-y-4">
+      {% for order in orders %}
+      <div class="rounded-[24px] border border-gray-200/70 bg-white/90 p-5 shadow-[0_20px_45px_rgba(15,15,15,0.06)] flex flex-col sm:flex-row sm:items-center gap-4 dark:border-gray-700 dark:bg-luxe-gray/90">
+        <div class="flex-1">
+          <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Order #{{ order.order_number }}</p>
+          <p class="text-sm text-gray-500">{{ order.created_at|date:"d M Y" }} · {{ order.items.count }} item{{ order.items.count|pluralize }}</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-sm font-bold text-luxe-gold">KES {{ order.total }}</span>
+          <span class="px-3 py-1 text-xs font-bold uppercase rounded-full
+            {% if order.status == 'completed' or order.status == 'delivered' %}bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
+            {% elif order.status == 'cancelled' or order.status == 'refunded' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
+            {% elif order.status == 'escrow' %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+            {% elif order.status == 'shipped' %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+            {% else %}bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400{% endif %}">
+            {{ order.get_status_display }}
+          </span>
+          <a href="{% url 'orders:order_detail' order.order_number %}"
+            class="text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-luxe-gold transition border-b border-transparent hover:border-luxe-gold">
+            View →
+          </a>
+        </div>
+      </div>
+      {% if order.escrow %}
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 p-4 rounded-lg text-xs text-blue-900 dark:text-blue-200">
+        <p class="font-semibold">Escrow protection active</p>
+        <p class="mt-1">Status: <strong>{{ order.escrow.get_status_display }}</strong>.</p>
+        <a href="{% url 'escrow:status' escrow_id=order.escrow.id %}" class="inline-block mt-2 text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300 hover:text-blue-800">View escrow details</a>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-24">
+      <svg class="w-16 h-16 text-gray-200 mx-auto mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+      <h2 class="font-serif text-2xl text-gray-300 mb-3">No Orders Yet</h2>
+      <a href="{% url 'products:shop' %}" class="inline-block bg-luxe-gold text-white px-8 py-3 text-sm font-bold uppercase tracking-wider hover:bg-yellow-600 transition">Start Shopping</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

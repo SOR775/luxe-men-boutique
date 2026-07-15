@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{% if is_edit %}Edit Category{% else %}Add Category{% endif %} — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold">{% if is_edit %}Edit Category{% else %}Add Category{% endif %}</h1>
+    <p class="text-sm text-gray-500">{% if is_edit %}Update category details.{% else %}Create a new product category.{% endif %}</p>
+  </div>
+
+  <div class="rounded-lg border bg-white p-8 shadow-sm">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Name</label>
+        {{ form.name }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Parent Category</label>
+        {{ form.parent }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Description</label>
+        {{ form.description }}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700">Image</label>
+        {{ form.image }}
+      </div>
+      <div class="flex items-center gap-4">
+        <label class="text-sm font-semibold text-gray-700">Active</label>
+        {{ form.is_active }}
+      </div>
+      <div class="flex items-center gap-3 mt-6">
+        <button type="submit" class="rounded bg-luxe-gold px-5 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-400">Save Category</button>
+        <a href="{% url 'products:admin_categories' %}" class="text-sm text-gray-500 hover:underline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

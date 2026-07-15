@@ -1,0 +1,27 @@
+{% extends "accounts/dashboard_base.html" %}
+
+{% block dashboard_title %}Wallet Transactions{% endblock %}
+
+{% block dashboard_content %}
+<div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Transaction history</h2>
+    <span class="text-sm text-gray-500">Balance: {{ wallet.balance }} {{ wallet.currency }}</span>
+  </div>
+  {% if transactions %}
+    <div class="space-y-3">
+      {% for tx in transactions %}
+        <div class="flex items-center justify-between rounded-2xl bg-gray-50/70 px-3 py-3 dark:bg-luxe-dark/70">
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-white">{{ tx.description|default:tx.get_transaction_type_display }}</p>
+            <p class="text-sm text-gray-500">{{ tx.created_at|date:"M d, Y H:i" }} · {{ tx.reference|default:'-' }}</p>
+          </div>
+          <span class="font-semibold {% if tx.transaction_type == 'credit' %}text-emerald-600{% else %}text-amber-600{% endif %}">{{ tx.get_transaction_type_display }} {{ tx.amount }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="rounded-2xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">No transactions recorded yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

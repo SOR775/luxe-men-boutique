@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <div class="bg-white dark:bg-luxe-dark rounded-3xl shadow p-8">
+    <div class="mb-8">
+      <h1 class="font-serif text-4xl font-bold">Contact Us</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">Need help? Send us a message and our support team will get back to you soon.</p>
+    </div>
+
+    {% if error %}
+      <div class="rounded-2xl bg-red-50 border border-red-200 p-4 text-red-700 mb-6">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      <div class="grid gap-6 sm:grid-cols-2">
+        <label class="block">
+          <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Name</span>
+          <input type="text" name="name" value="{{ name|default:'' }}" class="mt-2 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 focus:border-luxe-gold focus:ring-luxe-gold/20" required>
+        </label>
+        <label class="block">
+          <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Email</span>
+          <input type="email" name="email" value="{{ email|default:'' }}" class="mt-2 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 focus:border-luxe-gold focus:ring-luxe-gold/20" required>
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Subject</span>
+        <input type="text" name="subject" value="{{ subject|default:'' }}" class="mt-2 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 focus:border-luxe-gold focus:ring-luxe-gold/20">
+      </label>
+
+      <label class="block">
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Message</span>
+        <textarea name="message" rows="8" class="mt-2 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 focus:border-luxe-gold focus:ring-luxe-gold/20" required>{{ message|default:'' }}</textarea>
+      </label>
+
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <button type="submit" class="inline-flex items-center justify-center rounded-full bg-luxe-gold px-8 py-3 text-sm font-semibold uppercase tracking-widest text-white hover:bg-yellow-600 transition">Send Message</button>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Prefer faster support? Email us at <a href="mailto:support@luxemen.com" class="text-luxe-gold hover:text-yellow-500">support@luxemen.com</a>.</p>
+      </div>
+    </form>
+
+    {% if user.is_authenticated %}
+    <div class="mt-10 rounded-3xl border border-luxe-gold/20 bg-luxe-gold/5 p-6">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 class="font-serif text-2xl font-semibold">Start a support chat</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Open a WhatsApp-style support thread and keep the conversation in one place.</p>
+        </div>
+      </div>
+      <form method="post" action="{% url 'support:create_ticket' %}" class="mt-5 space-y-4">
+        {% csrf_token %}
+        <input type="text" name="subject" placeholder="What do you need help with?" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm focus:border-luxe-gold focus:outline-none" required>
+        <textarea name="message" rows="4" placeholder="Describe your issue or ask about an order..." class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm focus:border-luxe-gold focus:outline-none" required></textarea>
+        <div class="flex justify-end">
+          <button type="submit" class="rounded-full bg-luxe-gold px-6 py-3 text-sm font-semibold text-white">Start chat</button>
+        </div>
+      </form>
+    </div>
+    {% else %}
+    <div class="mt-10 rounded-3xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-600">
+      Sign in to start a live support chat thread with our team.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

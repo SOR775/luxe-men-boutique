@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invoice — {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="font-serif text-3xl font-bold">Invoice</h1>
+      <p class="text-sm text-gray-500">Printable order invoice for {{ order.order_number }}.</p>
+    </div>
+    <button onclick="window.print()" class="inline-flex items-center rounded-full bg-gray-900 px-5 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-white hover:bg-black transition">Print Invoice</button>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-10">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">LUXE MEN</h2>
+        <p class="text-sm text-gray-500 mt-2">Premium men's boutique</p>
+      </div>
+      <div class="text-sm text-gray-600 space-y-1">
+        <p><span class="font-semibold text-gray-900">Invoice #</span> {{ order.order_number }}</p>
+        <p><span class="font-semibold text-gray-900">Date</span> {{ order.created_at|date:"M d, Y" }}</p>
+        <p><span class="font-semibold text-gray-900">Status</span> {{ order.get_status_display }}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <div class="space-y-2">
+        <p class="text-xs uppercase tracking-[0.24em] text-gray-400">Bill to</p>
+        <p class="text-sm font-semibold text-gray-900">{{ order.user.get_full_name|default:order.shipping_email }}</p>
+        <p class="text-sm text-gray-500">{{ order.shipping_email }}</p>
+      </div>
+      <div class="space-y-2">
+        <p class="text-xs uppercase tracking-[0.24em] text-gray-400">Ship to</p>
+        <p class="text-sm font-semibold text-gray-900">{{ order.shipping_name }}</p>
+        <p class="text-sm text-gray-500">{{ order.shipping_address }}</p>
+        <p class="text-sm text-gray-500">{{ order.shipping_city }}, {{ order.shipping_country }}</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">Item</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-[0.12em]">SKU</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-500 uppercase tracking-[0.12em]">Qty</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-500 uppercase tracking-[0.12em]">Unit Price</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-500 uppercase tracking-[0.12em]">Total</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for item in items %}
+          <tr>
+            <td class="px-4 py-4 text-gray-900">{{ item.product_name }}</td>
+            <td class="px-4 py-4 text-gray-600">{{ item.sku }}</td>
+            <td class="px-4 py-4 text-right text-gray-900">{{ item.quantity }}</td>
+            <td class="px-4 py-4 text-right text-gray-900">KES {{ item.unit_price }}</td>
+            <td class="px-4 py-4 text-right font-semibold text-gray-900">KES {{ item.line_total }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="rounded-3xl bg-gray-50 p-6">
+        <p class="text-sm text-gray-500">Notes</p>
+        <p class="mt-2 text-sm text-gray-700">{{ order.customer_notes|default:'No special instructions.' }}</p>
+      </div>
+      <div class="rounded-3xl bg-gray-50 p-6">
+        <div class="flex justify-between text-sm text-gray-600 mb-2"><span>Subtotal</span><span>KES {{ order.subtotal }}</span></div>
+        <div class="flex justify-between text-sm text-gray-600 mb-2"><span>Shipping</span><span>KES {{ order.shipping_cost }}</span></div>
+        <div class="flex justify-between text-sm text-gray-600 mb-2"><span>Discount</span><span>KES {{ order.discount_amount }}</span></div>
+        <div class="border-t border-gray-200 pt-3 text-lg font-semibold text-gray-900 flex justify-between"><span>Total</span><span>KES {{ order.total }}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

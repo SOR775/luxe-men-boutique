@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Product Management — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold">Product Management</h1>
+      <p class="text-sm text-gray-500">Publish, edit, and review products in your catalog.</p>
+    </div>
+    <a href="{% url 'products:shop' %}" class="inline-flex items-center rounded bg-luxe-gold px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-400">View Storefront</a>
+  </div>
+
+  <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Category</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Brand</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Price</th>
+          <th class="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
+          <th class="px-4 py-3 text-right font-semibold text-gray-700">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 bg-white">
+        {% for product in products %}
+        <tr>
+          <td class="px-4 py-4">{{ product.name }}</td>
+          <td class="px-4 py-4">{{ product.category }}</td>
+          <td class="px-4 py-4">{{ product.brand }}</td>
+          <td class="px-4 py-4">KES {{ product.base_price }}</td>
+          <td class="px-4 py-4">{{ product.visibility|capfirst }}</td>
+          <td class="px-4 py-4 text-right">
+            <a href="{% url 'products:detail' product.slug %}" class="text-luxe-gold hover:underline">View</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">No products found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

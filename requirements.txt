@@ -1,0 +1,17 @@
+Django>=5.0,<5.1
+djangorestframework
+django-cors-headers
+django-environ
+psycopg2-binary
+Pillow
+redis
+celery
+gunicorn
+channels
+channels-redis
+uvicorn
+django-filter
+drf-yasg
+pytest-django
+whitenoise
+django-redis

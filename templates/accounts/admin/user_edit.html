@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto py-8">
+  <h2 class="text-2xl font-semibold mb-4">Edit User: {{ target.get_full_name }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="space-y-3">
+      {% for field in form.visible_fields %}
+        <div>
+          <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-red-600 text-sm">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    {% if can_manage_roles and role_form %}
+    <div class="mt-6 border-t pt-4">
+      <h3 class="text-lg font-semibold mb-3">Role Assignment</h3>
+      <div class="space-y-3">
+        {% for field in role_form.visible_fields %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="text-red-600 text-sm">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    <div class="mt-4">
+      <button type="submit" class="bg-luxe-gold px-4 py-2 text-white rounded">Save</button>
+      <a href="{% url 'accounts:admin_users' %}" class="ml-2 text-sm text-gray-600">Back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Marketing — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-luxe-dark dark:via-luxe-gray dark:to-luxe-dark">
+  <section class="px-4 py-20 sm:px-6 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-2xl">
+        <p class="text-sm uppercase tracking-[0.35em] text-luxe-gold">Luxe Men Journal</p>
+        <h1 class="mt-3 font-serif text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">Style notes, product drops, and tailored advice.</h1>
+        <p class="mt-5 text-lg text-gray-600 dark:text-gray-300">Discover the latest stories, seasonal edits, and early-access offers curated for the modern gentleman.</p>
+      </div>
+      <div class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Subscribe</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Get first access to launches, styling notes, and limited offers.</p>
+        <form method="post" action="{% url 'marketing:newsletter_subscribe' %}" class="mt-4 flex flex-col gap-2 sm:flex-row">
+          {% csrf_token %}
+          <input type="email" name="email" required placeholder="Email address" class="w-full rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 focus:border-luxe-gold focus:outline-none dark:border-gray-800 dark:bg-luxe-gray dark:text-gray-200" />
+          <button type="submit" class="rounded-full bg-luxe-gold px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90">Join</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="px-4 pb-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-8 flex items-end justify-between">
+        <div>
+          <p class="text-sm uppercase tracking-[0.35em] text-luxe-gold">Latest stories</p>
+          <h2 class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">Fresh editorial picks</h2>
+        </div>
+        <a href="{% url 'marketing:blog_list' %}" class="text-sm font-medium text-luxe-gold hover:opacity-80">View all posts</a>
+      </div>
+
+      {% if posts %}
+        <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+          {% for post in posts %}
+            <article class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              <div class="p-6">
+                <p class="text-xs uppercase tracking-[0.3em] text-luxe-gold">{{ post.created_at|date:'M d, Y' }}</p>
+                <h3 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white">{{ post.title }}</h3>
+                <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ post.excerpt|default:post.content|truncatechars:140 }}</p>
+                <a href="{% url 'marketing:blog_detail' post.slug %}" class="mt-5 inline-flex text-sm font-semibold text-luxe-gold">Read story →</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="rounded-3xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-700 dark:bg-gray-900">
+          <p class="text-gray-600 dark:text-gray-300">No published posts yet. New stories will appear here soon.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

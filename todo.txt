@@ -1,0 +1,263 @@
+If you're building a modern e-commerce platform (rather than a basic online shop), these are the advanced features you'll find on leading sites like [Nike](https://www.nike.com?utm_source=chatgpt.com), [ASOS](https://www.asos.com?utm_source=chatgpt.com), [Zalando](https://www.zalando.com?utm_source=chatgpt.com), and [Amazon](https://www.amazon.com?utm_source=chatgpt.com).
+
+## Customer Experience
+
+* AI-powered product recommendations
+* "Frequently Bought Together"
+* Recently viewed products
+* Personalized homepage
+* Wishlist/Favorites
+* Save for later
+* Compare products
+* Smart search with autocomplete
+* Voice search
+* Image-based product search
+* Barcode scanning (mobile)
+* Outfit or "Complete the Look" suggestions
+
+---
+
+## Product Catalog
+
+* Multiple product images
+* 360° product viewer
+* Product videos
+* Zoom on hover
+* Color swatches
+* Size selector
+* Size guide
+* Fit recommendations
+* Inventory by size and color
+* Estimated delivery date
+* Low-stock indicators
+* Product bundles
+* Variant management
+* Digital product manuals
+
+---
+
+## Search & Filtering
+
+* Filter by:
+
+  * Brand
+  * Category
+  * Size
+  * Color
+  * Material
+  * Price
+  * Rating
+  * Availability
+  * Discount
+  * New arrivals
+* Multi-select filters
+* Dynamic filter counts
+* Sort by:
+
+  * Popularity
+  * Newest
+  * Price
+  * Rating
+  * Best selling
+
+---
+
+## Shopping Cart
+
+* Persistent cart across devices
+* Save items for later
+* Coupon codes
+* Gift cards
+* Promo banners
+* Shipping estimator
+* Tax calculator
+* Cross-sell suggestions
+* Upsell suggestions
+* Free-shipping progress bar
+
+Example:
+
+> Spend KSh 1,200 more to qualify for free shipping.
+
+---
+
+## Checkout
+
+* Guest checkout
+* One-page checkout
+* Express checkout
+* Multiple shipping addresses
+* Multiple payment options
+* Mobile money integration (e.g., M-Pesa)
+* Order notes
+* Gift wrapping
+* Digital invoices
+* Address validation
+
+---
+
+## User Account
+
+* Order history
+* Invoice downloads
+* Order tracking
+* Return requests
+* Refund status
+* Wishlist
+* Saved payment methods
+* Saved addresses
+* Loyalty points
+* Reward wallet
+* Referral program
+
+---
+
+## Reviews & Social Proof
+
+* Star ratings
+* Verified purchase badges
+* Customer photos
+* Customer videos
+* Questions & Answers
+* Helpful vote system
+* Review filtering
+* Size and fit feedback
+
+---
+
+## Notifications
+
+* Order confirmation
+* Shipping updates
+* Delivery notifications
+* Back-in-stock alerts
+* Price-drop alerts
+* Wishlist notifications
+* Promotional emails
+* SMS notifications
+* Push notifications
+
+---
+
+## Marketing Features
+
+* Flash sales
+* Daily deals
+* Countdown timers
+* Coupons
+* Discount codes
+* Referral discounts
+* Affiliate program
+* Loyalty rewards
+* Birthday offers
+* Personalized promotions
+
+---
+
+## Admin Dashboard
+
+* Sales analytics
+* Revenue reports
+* Customer analytics
+* Inventory dashboard
+* Product management
+* Category management
+* Coupon management
+* Order management
+* User management
+* Role-based permissions
+* Audit logs
+
+---
+
+## Inventory Management
+
+* Stock tracking
+* Low-stock alerts
+* Automatic stock updates
+* Warehouse management
+* Barcode support
+* SKU management
+* Batch imports
+* Supplier management
+
+---
+
+## Security
+
+* Two-factor authentication (2FA)
+* CAPTCHA
+* Fraud detection
+* Secure payment processing
+* Encrypted passwords
+* Login history
+* Device management
+
+---
+
+## Customer Support
+
+* Live chat
+* AI chatbot
+* Support tickets
+* FAQ
+* Contact forms
+* WhatsApp integration
+* Call-back requests
+
+---
+
+## Mobile Features
+
+* Progressive Web App (PWA)
+* Dark mode
+* Offline browsing for saved items
+* Biometric login
+* Push notifications
+* QR code scanning
+
+---
+
+## AI-Powered Features
+
+* AI shopping assistant
+* Personalized recommendations
+* Natural language search (e.g., "Show me black leather shoes under KSh 8,000")
+* AI-generated product descriptions
+* Automatic product tagging
+* Demand forecasting
+* AI-powered customer support
+* Dynamic pricing based on demand
+
+---
+
+## Business Features
+
+* Multi-vendor marketplace
+* Multi-language support
+* Multi-currency support
+* Multi-store management
+* Tax management
+* Shipping integrations
+* Supplier portal
+* Wholesale pricing
+* B2B customer accounts
+* API integrations with ERP and CRM systems
+
+### If you're building a **final-year project**, startup MVP, or commercial platform, a feature set like this is considered enterprise-grade:
+
+* User authentication and profiles
+* Product catalog with advanced search and filters
+* Wishlist and shopping cart
+* Secure checkout with multiple payment methods (including M-Pesa for Kenya)
+* Order tracking and returns
+* Reviews and ratings
+* AI-powered recommendations
+* Admin dashboard with analytics
+* Inventory and supplier management
+* Email/SMS/push notifications
+* Loyalty and referral program
+* Responsive mobile-first design
+* Security features (2FA, role-based access control, audit logs)
+
+This combination provides a robust foundation comparable to the capabilities users expect from major online retailers.

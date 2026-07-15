@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-6xl mx-auto py-8">
+  <h2 class="text-2xl font-semibold mb-4">Audit Log</h2>
+  <form method="get" class="mb-4 flex gap-2">
+    <input type="text" name="q" placeholder="Search" value="{{ request.GET.q }}" class="form-control px-3 py-2">
+    <select name="action" class="px-3 py-2 border">
+      <option value="">All actions</option>
+      {% for key, label in actions.items %}
+        <option value="{{ key }}" {% if request.GET.action == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="bg-luxe-gold text-white px-3 py-2">Filter</button>
+    <a href="{% url 'accounts:admin_audit_export' %}?{{ request.GET.urlencode }}" class="ml-2 inline-flex items-center px-3 py-2 border bg-white">Export CSV</a>
+  </form>
+
+  <div class="bg-white dark:bg-gray-800 rounded shadow">
+    <table class="w-full text-sm">
+      <thead class="text-left text-xs text-gray-500 uppercase">
+        <tr>
+          <th class="p-2">Time</th>
+          <th class="p-2">Actor</th>
+          <th class="p-2">Target</th>
+          <th class="p-2">Action</th>
+          <th class="p-2">Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr class="border-t">
+          <td class="p-2">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+          <td class="p-2">{% if log.actor %}{{ log.actor.email }}{% else %}System{% endif %}</td>
+          <td class="p-2">{% if log.target_user %}{{ log.target_user.email }}{% else %}-{% endif %}</td>
+          <td class="p-2">{{ log.get_action_display }}</td>
+          <td class="p-2">{{ log.message }}</td>
+          <td class="p-2"><a href="{% url 'accounts:admin_audit_detail' log.pk %}" class="text-luxe-gold">Detail</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="p-4 text-center text-gray-500">No audit entries.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4 flex items-center justify-between">
+    <div class="text-sm text-gray-600">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ paginator.count }}</div>
+    <div>
+      <nav class="inline-flex" aria-label="pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="px-2 py-1 bg-white border rounded-l">Prev</a>
+        {% else %}
+          <span class="px-2 py-1 bg-gray-100 border rounded-l text-gray-400">Prev</span>
+        {% endif %}
+        <span class="px-3 py-1 border-t border-b">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="px-2 py-1 bg-white border rounded-r">Next</a>
+        {% else %}
+          <span class="px-2 py-1 bg-gray-100 border rounded-r text-gray-400">Next</span>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+</div>
+{% endblock %}

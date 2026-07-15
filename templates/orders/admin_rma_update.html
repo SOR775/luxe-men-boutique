@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Update RMA — {{ return_request.order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="mb-8">
+    <h1 class="font-serif text-3xl font-bold">Update RMA Request</h1>
+    <p class="text-sm text-gray-500">Adjust status and add a response for the selected return request.</p>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8">
+    <div class="space-y-4 mb-8">
+      <div>
+        <p class="text-xs uppercase tracking-[0.24em] text-gray-400">Order</p>
+        <p class="font-semibold text-gray-900">{{ return_request.order.order_number }}</p>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-[0.24em] text-gray-400">Customer</p>
+        <p class="font-semibold text-gray-900">{{ return_request.user.get_full_name|default:return_request.user.email }}</p>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-[0.24em] text-gray-400">Request</p>
+        <p class="text-gray-900">{{ return_request.get_type_display }} &mdash; {{ return_request.reason }}</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid gap-6">
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-2">Status</label>
+          <select name="status" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-luxe-gold focus:outline-none">
+            {% for value,label in return_request.Status.choices %}
+            <option value="{{ value }}" {% if return_request.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-2">Admin response</label>
+          <textarea name="admin_response" rows="6" class="w-full rounded-3xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-luxe-gold focus:outline-none">{{ return_request.admin_response }}</textarea>
+        </div>
+      </div>
+      <div class="mt-6 flex items-center gap-3">
+        <button type="submit" class="inline-flex items-center rounded-full bg-luxe-gold px-5 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-white hover:bg-yellow-500 transition">Save changes</button>
+        <a href="{% url 'orders:admin_rma' %}" class="text-sm text-gray-500 hover:text-gray-900">Back to RMA list</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

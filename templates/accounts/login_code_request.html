@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Request Login Code — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8 bg-white dark:bg-luxe-gray p-8 border border-gray-100 dark:border-gray-800 rounded-sm">
+    <div class="text-center">
+      <h2 class="mt-2 text-3xl font-serif font-bold text-gray-900 dark:text-white">Sign in with Email</h2>
+      <p class="mt-2 text-sm text-gray-500">Enter your email and we’ll send you a one-time login code.</p>
+    </div>
+
+    {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+      <div class="p-3 rounded text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form class="mt-8 space-y-6" method="POST" action="{% url 'accounts:login_code_request' %}">
+      {% csrf_token %}
+      <div>
+        {{ form.email.label_tag }}
+        {{ form.email }}
+        {% if form.email.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+        {% endif %}
+      </div>
+      <div>
+        <button type="submit" class="w-full py-3 px-4 bg-luxe-gold text-white rounded-sm font-semibold uppercase tracking-wider">Send Login Code</button>
+      </div>
+    </form>
+
+    <div class="text-center text-sm text-gray-500">
+      <a href="{% url 'accounts:login' %}" class="text-luxe-gold hover:text-yellow-600">Use password login instead</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

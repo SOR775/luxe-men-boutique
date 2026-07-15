@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Payment Failed — Luxe Men{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark flex items-center justify-center py-20 px-4">
+  <div class="max-w-lg w-full text-center">
+    <div class="w-24 h-24 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-8">
+      <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </div>
+    <h1 class="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-3">Payment Failed</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-2">We couldn't process your payment for order <strong class="text-luxe-gold">#{{ order.order_number }}</strong>.</p>
+    <p class="text-gray-400 text-sm mb-10">Your order has been saved. You can retry the payment at any time.</p>
+
+    <div class="bg-white dark:bg-luxe-gray border border-red-100 dark:border-red-900/30 rounded-sm p-6 mb-8 text-sm text-left space-y-2">
+      <p class="font-semibold text-gray-900 dark:text-white mb-3">Common reasons for failure:</p>
+      <div class="flex items-start gap-2 text-gray-500"><span>•</span><span>Insufficient M-Pesa balance</span></div>
+      <div class="flex items-start gap-2 text-gray-500"><span>•</span><span>Incorrect M-Pesa PIN entered</span></div>
+      <div class="flex items-start gap-2 text-gray-500"><span>•</span><span>STK Push prompt was cancelled or timed out</span></div>
+      <div class="flex items-start gap-2 text-gray-500"><span>•</span><span>Daily M-Pesa transaction limit reached</span></div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="{% url 'payments:select' order.id %}"
+        class="px-8 py-3 bg-luxe-gold text-white font-bold uppercase tracking-wider text-sm hover:bg-yellow-600 transition">
+        Try Again
+      </a>
+      <a href="{% url 'products:shop' %}"
+        class="px-8 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold uppercase tracking-wider text-sm hover:border-luxe-gold hover:text-luxe-gold transition">
+        Back to Shop
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

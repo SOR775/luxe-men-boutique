@@ -1,0 +1,108 @@
+﻿{% load static %}
+
+{# Featured / Curated section (only on first page) #}
+{% if featured_products and not request.GET.page %}
+<section class="mb-10 rounded-[28px] border border-luxe-gold/20 bg-gradient-to-r from-luxe-gold/10 via-white to-amber-50 p-5 shadow-[0_16px_36px_rgba(15,15,15,0.06)] dark:border-amber-700/30 dark:from-amber-900/20 dark:via-luxe-gray/90 dark:to-amber-950/20">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-5">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.3em] text-luxe-gold">Curated Picks</p>
+      <h2 class="font-serif text-2xl font-bold text-gray-900 dark:text-white">Complete the Set</h2>
+    </div>
+    <p class="text-sm text-gray-600 dark:text-gray-300">Pair your look with a few standout essentials.</p>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    {% for product in featured_products %}
+    <div class="rounded-[20px] border border-gray-200/70 bg-white/90 p-3 shadow-sm dark:border-gray-700 dark:bg-luxe-gray/90">
+      <a href="{% url 'products:detail' product.slug %}" class="block relative overflow-hidden rounded-[16px] aspect-[3/4] mb-3">
+        {% if product.primary_images %}
+        <img src="{{ product.primary_images.0.image.url }}" alt="{{ product.name }}" loading="lazy" class="w-full h-full object-cover transition duration-500 hover:scale-105">
+        {% else %}
+        <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-300">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        </div>
+        {% endif %}
+      </a>
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-white leading-snug"><a href="{% url 'products:detail' product.slug %}" class="hover:text-luxe-gold transition">{{ product.name }}</a></h3>
+      <p class="text-luxe-gold font-bold text-sm mt-1">${{ product.base_price }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# Product Grid #}
+{% if products %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+  {% for product in products %}
+  <div class="group rounded-[24px] border border-gray-200/70 bg-white/90 p-3 shadow-[0_18px_40px_rgba(15,15,15,0.08)] transition duration-300 hover:-translate-y-1 dark:border-gray-700 dark:bg-luxe-gray/90">
+    <a href="{% url 'products:detail' product.slug %}" class="block relative overflow-hidden rounded-[18px] aspect-[3/4]">
+      {% if product.primary_images %}
+        <img src="{{ product.primary_images.0.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      {% else %}
+        <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        </div>
+      {% endif %}
+      {% if product.compare_at_price %}<span class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-sm">SALE</span>{% endif %}
+      {% if product.is_featured %}<span class="absolute top-3 right-3 bg-luxe-gold text-white text-xs font-bold px-2 py-1 rounded-sm">FEATURED</span>{% endif %}
+      <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition duration-300 flex items-end justify-center pb-6">
+        <span class="bg-white text-black px-6 py-2 uppercase tracking-wider text-xs font-bold hover:bg-luxe-gold hover:text-white transition">View Product</span>
+      </div>
+    </a>
+    <div class="p-4">
+      {% if product.brand %}<p class="text-xs text-gray-400 uppercase tracking-wider mb-1">{{ product.brand.name }}</p>{% endif %}
+      <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-1 leading-snug">
+        <a href="{% url 'products:detail' product.slug %}" class="hover:text-luxe-gold transition">{{ product.name }}</a>
+      </h2>
+      {% if product.avg_rating %}
+      <div class="flex items-center mb-2">
+        {% for i in "12345" %}
+        <svg class="w-3.5 h-3.5 {% if forloop.counter <= product.avg_rating|floatformat:'0' %}text-luxe-gold fill-current{% else %}text-gray-300{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+        </svg>
+        {% endfor %}
+        <span class="text-xs text-gray-400 ml-1">({{ product.avg_rating|floatformat:1 }})</span>
+      </div>
+      {% endif %}
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-base font-bold text-luxe-gold">${{ product.base_price }}</span>
+          {% if product.compare_at_price %}<span class="text-xs text-gray-400 line-through ml-2">${{ product.compare_at_price }}</span>{% endif %}
+        </div>
+        <button type="button" onclick="toggleWishlist('{{ product.id }}', this)" class="group transition" title="Add to Wishlist">
+          <svg class="w-5 h-5 {% if product.in_wishlist %}text-red-500 fill-current{% else %}text-gray-400 group-hover:text-red-500{% endif %} transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# Infinite Scroll Trigger #}
+{% if page_obj.has_next %}
+<div id="infinite-scroll-trigger"
+     hx-get="{% url 'products:shop' %}?page={{ page_obj.next_page_number }}"
+     hx-include="#filter-form"
+     hx-trigger="revealed"
+     hx-target="this"
+     hx-swap="outerHTML"
+     class="flex justify-center items-center py-12">
+  <div class="flex flex-col items-center gap-3">
+    <div class="flex gap-1.5">
+      <div class="w-2.5 h-2.5 bg-luxe-gold rounded-full animate-bounce" style="animation-delay:0ms"></div>
+      <div class="w-2.5 h-2.5 bg-luxe-gold/70 rounded-full animate-bounce" style="animation-delay:150ms"></div>
+      <div class="w-2.5 h-2.5 bg-luxe-gold/40 rounded-full animate-bounce" style="animation-delay:300ms"></div>
+    </div>
+    <span class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Loading more</span>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-24">
+  <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+  <h3 class="font-serif text-2xl text-gray-400 mb-2">No Products Found</h3>
+  <p class="text-gray-400 text-sm mb-6">Try adjusting your search or filters.</p>
+  <a href="{% url 'products:shop' %}" class="inline-block bg-luxe-gold text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-yellow-600 transition rounded-full">Clear Filters</a>
+</div>
+{% endif %}

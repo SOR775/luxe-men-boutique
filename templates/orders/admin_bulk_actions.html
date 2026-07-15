@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Bulk Order Actions — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-8">
+    <div>
+      <h1 class="font-serif text-3xl font-bold">Bulk Order Actions</h1>
+      <p class="text-sm text-gray-500">Update order statuses in batches and notify customers automatically.</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <a href="{% url 'orders:admin_orders' %}" class="inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-gray-700 hover:bg-gray-50">Order List</a>
+      <a href="{% url 'orders:admin_rma' %}" class="inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-gray-700 hover:bg-gray-50">RMA Requests</a>
+    </div>
+  </div>
+
+  <form method="get" class="mb-6 flex flex-wrap gap-3 items-end">
+    <div>
+      <label class="block text-xs uppercase tracking-[0.24em] text-gray-500 mb-1">Search</label>
+      <input type="text" name="q" value="{{ search_query }}" class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-luxe-gold focus:outline-none" placeholder="Order #, email, customer" />
+    </div>
+    <div>
+      <label class="block text-xs uppercase tracking-[0.24em] text-gray-500 mb-1">Status</label>
+      <select name="status" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-luxe-gold focus:outline-none">
+        <option value="">All statuses</option>
+        {% for value,label in statuses %}
+        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <button type="submit" class="inline-flex items-center rounded-full bg-luxe-gold px-5 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-white hover:bg-yellow-500 transition">Filter</button>
+    </div>
+  </form>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="overflow-x-auto bg-white rounded-3xl border border-gray-200 shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left"><input type="checkbox" id="select_all" class="rounded text-luxe-gold" /></th>
+            <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Order #</th>
+            <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Customer</th>
+            <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Total</th>
+            <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Status</th>
+            <th class="px-4 py-3 text-left font-semibold uppercase tracking-[0.12em] text-gray-500">Created</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for order in orders %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3"><input type="checkbox" name="order_ids" value="{{ order.order_number }}" class="rounded text-luxe-gold" /></td>
+            <td class="px-4 py-3 font-medium text-gray-900">{{ order.order_number }}</td>
+            <td class="px-4 py-3 text-gray-600">{{ order.user.get_full_name|default:order.shipping_email }}</td>
+            <td class="px-4 py-3 text-gray-900">KES {{ order.total }}</td>
+            <td class="px-4 py-3 text-gray-600">{{ order.get_status_display }}</td>
+            <td class="px-4 py-3 text-gray-600">{{ order.created_at|date:"M d, Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-4 py-8 text-center text-gray-500">No orders found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <label class="text-xs uppercase tracking-[0.24em] text-gray-500">Bulk action</label>
+        <select name="action" class="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-luxe-gold focus:outline-none">
+          <option value="">Select action</option>
+          <option value="mark_shipped">Mark as Shipped</option>
+          <option value="mark_delivered">Mark as Delivered</option>
+          <option value="mark_returned">Mark as Returned</option>
+          <option value="cancel_order">Cancel Orders</option>
+        </select>
+      </div>
+      <button type="submit" class="inline-flex items-center rounded-full bg-luxe-gold px-5 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-white hover:bg-yellow-500 transition">Apply to selected</button>
+    </div>
+  </form>
+</div>
+
+{% block extra_scripts %}
+<script>
+  document.getElementById('select_all')?.addEventListener('change', function(event) {
+    document.querySelectorAll('input[name="order_ids"]').forEach(function(checkbox) {
+      checkbox.checked = event.target.checked;
+    });
+  });
+</script>
+{% endblock %}
+{% endblock %}

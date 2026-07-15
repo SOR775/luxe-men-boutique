@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Support Chat — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="rounded-[32px] border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div class="border-b border-gray-200 bg-gray-50 px-5 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="font-serif text-2xl font-bold text-gray-900">{{ ticket.subject }}</h1>
+        <p class="text-sm text-gray-500">{{ ticket.email }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          Support bot online
+        </span>
+        <span class="rounded-full bg-luxe-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-luxe-gold">{{ ticket.get_status_display }}</span>
+        {% if request.user.is_staff %}
+        <form method="post" action="{% url 'support:close_ticket' ticket.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-luxe-gold hover:text-luxe-gold">Close ticket</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="h-[420px] overflow-y-auto bg-[radial-gradient(circle_at_top_left,_rgba(245,208,111,0.12),_transparent_45%)] p-4 sm:p-6" data-chat-messages>
+      {% for message in messages %}
+      <div class="mb-3 flex {% if message.is_from_customer %}justify-start{% else %}justify-end{% endif %}">
+        <div class="max-w-[80%] rounded-2xl px-4 py-3 {% if message.is_from_customer %}bg-white border border-gray-200 text-gray-700{% else %}bg-luxe-gold text-white{% endif %}">
+          <p class="text-sm whitespace-pre-line">{{ message.body }}</p>
+          <p class="mt-2 text-[11px] opacity-70">{{ message.created_at|date:"M d, H:i" }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-center py-16 text-sm text-gray-500">No messages yet. Start the conversation.</div>
+      {% endfor %}
+    </div>
+
+    <div class="border-t border-gray-200 bg-white p-4 sm:p-5">
+      <div class="mb-3 flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+        <span>If you need a live human support specialist, type “human support” and we’ll escalate your request.</span>
+      </div>
+      <div class="mb-3 flex flex-wrap gap-2">
+        {% for suggestion in suggestions %}
+        <button type="button" class="suggestion-chip rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-luxe-gold hover:text-luxe-gold" data-message="{{ suggestion|escape }}">{{ suggestion }}</button>
+        {% endfor %}
+      </div>
+      <form id="support-chat-form" method="post">
+        {% csrf_token %}
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <input type="text" name="message" id="support-message-input" placeholder="Type your message..." class="flex-1 rounded-full border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-luxe-gold" required>
+          <button type="submit" class="rounded-full bg-luxe-gold px-5 py-3 text-sm font-semibold text-white">Send</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('support-message-input');
+    const form = document.getElementById('support-chat-form');
+    const chips = document.querySelectorAll('.suggestion-chip');
+    const messagesContainer = document.querySelector('[data-chat-messages]');
+    if (!input || !form) return;
+    const isHumanSupportRequest = (value) => /human support|live help|agent/i.test(value || '');
+
+    const appendMessageBubble = (body, isFromCustomer = true) => {
+      if (!messagesContainer) {
+        window.location.reload();
+        return;
+      }
+      const bubble = document.createElement('div');
+      bubble.className = `mb-3 flex ${isFromCustomer ? 'justify-start' : 'justify-end'}`;
+      bubble.innerHTML = `<div class="max-w-[80%] rounded-2xl px-4 py-3 ${isFromCustomer ? 'bg-white border border-gray-200 text-gray-700' : 'bg-luxe-gold text-white'}"><p class="text-sm whitespace-pre-line">${body}</p><p class="mt-2 text-[11px] opacity-70">Just now</p></div>`;
+      messagesContainer.appendChild(bubble);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const suggestion = chip.getAttribute('data-message') || '';
+        input.value = suggestion;
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+        if (typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+        } else {
+          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }
+      });
+    });
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+
+      const formData = new FormData(form);
+      formData.set('message', message);
+      input.value = '';
+
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+      }
+
+      try {
+        const response = await fetch(window.location.href, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+          },
+          body: formData,
+        });
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || '';
+          const data = contentType.includes('application/json') ? await response.json().catch(() => ({})) : {};
+          if (data.success || contentType.includes('application/json') || response.redirected) {
+            appendMessageBubble(message, true);
+            if (data.reply_body) {
+              appendMessageBubble(data.reply_body, false);
+            }
+          } else {
+            window.location.reload();
+          }
+        } else {
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Support message send error', error);
+        window.location.reload();
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Send';
+        }
+      }
+    });
+
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && isHumanSupportRequest(input.value)) {
+        const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAI2AAABAAwR0FDU4AABgA3AAABmYgGAAAAAABAAQ==');
+        audio.play().catch(() => {});
+      }
+    });
+  });
+</script>
+{% endblock %}

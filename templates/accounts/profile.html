@@ -1,0 +1,132 @@
+{% extends "accounts/dashboard_base.html" %}
+
+{% block dashboard_title %}Personal Information{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+  <div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+      <div class="flex items-center gap-4">
+        <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100 text-xl font-semibold text-gray-700 dark:border-gray-700 dark:bg-luxe-dark dark:text-gray-200">
+          {% if request.user.avatar %}
+            <img src="{{ request.user.avatar.url }}" alt="{{ request.user.get_full_name|default:request.user.username }}" class="h-full w-full object-cover">
+          {% else %}
+            {{ request.user.first_name|default:request.user.username|slice:':1'|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <h2 class="font-serif text-xl font-bold text-gray-900 dark:text-white">{{ request.user.get_full_name|default:request.user.username }}</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ request.user.email }}</p>
+          <p class="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-luxe-gold">Member profile</p>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-gray-200/70 bg-gray-50/70 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-luxe-dark/70 dark:text-gray-300">
+        <p class="font-semibold text-gray-900 dark:text-white">Quick summary</p>
+        <p class="mt-1">Phone: {{ request.user.phone|default:"Not added yet" }}</p>
+        <p>Gender: {{ request.user.get_gender_display|default:"Not set" }}</p>
+      </div>
+    </div>
+  </div>
+
+  {% if messages %}
+  <div class="space-y-2">
+    {% for message in messages %}
+    <div class="rounded-2xl p-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'accounts:profile' %}" enctype="multipart/form-data" class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
+    {% csrf_token %}
+
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Personal details</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Some details are optional and can be updated anytime.</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="md:col-span-2">
+        <label for="id_avatar" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Profile picture</label>
+        {{ form.avatar }}
+        {% if form.avatar.errors %}<p class="text-red-500 text-xs mt-1">{{ form.avatar.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="id_first_name" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">First name</label>
+        {{ form.first_name }}
+        {% if form.first_name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="id_last_name" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Last name</label>
+        {{ form.last_name }}
+        {% if form.last_name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="id_username" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}<p class="text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="id_phone" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Phone</label>
+        {{ form.phone }}
+        {% if form.phone.errors %}<p class="text-red-500 text-xs mt-1">{{ form.phone.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="id_date_of_birth" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Date of birth</label>
+        {{ form.date_of_birth }}
+        {% if form.date_of_birth.errors %}<p class="text-red-500 text-xs mt-1">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="id_gender" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Gender</label>
+        {{ form.gender }}
+        {% if form.gender.errors %}<p class="text-red-500 text-xs mt-1">{{ form.gender.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="md:col-span-2">
+        <label for="id_bio" class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Bio</label>
+        {{ form.bio }}
+        {% if form.bio.errors %}<p class="text-red-500 text-xs mt-1">{{ form.bio.errors.0 }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="mt-8 border-t border-gray-200/70 pt-6 dark:border-gray-700">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Contact &amp; preferences</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">These help us tailor your experience and keep you informed.</p>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="rounded-2xl border border-gray-200/70 bg-gray-50/70 p-4 dark:border-gray-700 dark:bg-luxe-dark/70">
+        <p class="text-sm font-semibold text-gray-900 dark:text-white">Email address</p>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">{{ request.user.email }}</p>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Your email is used for login and account notifications.</p>
+      </div>
+      <div class="rounded-2xl border border-gray-200/70 bg-gray-50/70 p-4 dark:border-gray-700 dark:bg-luxe-dark/70">
+        <div class="space-y-3">
+          <label class="flex items-center justify-between gap-3 rounded-xl border border-gray-200/70 bg-white/70 px-3 py-3 dark:border-gray-700 dark:bg-luxe-gray/80">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ form.newsletter_subscribed }} Newsletter updates</span>
+          </label>
+          <label class="flex items-center justify-between gap-3 rounded-xl border border-gray-200/70 bg-white/70 px-3 py-3 dark:border-gray-700 dark:bg-luxe-gray/80">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ form.sms_notifications }} SMS notifications</span>
+          </label>
+          <label class="flex items-center justify-between gap-3 rounded-xl border border-gray-200/70 bg-white/70 px-3 py-3 dark:border-gray-700 dark:bg-luxe-gray/80">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ form.email_notifications }} Email notifications</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-sm text-gray-500 dark:text-gray-400">You can update personal details anytime. Sensitive account info stays protected.</p>
+      <button type="submit" class="rounded-full bg-luxe-gold px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-yellow-600">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+  input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea, input[type="file"] {
+    @apply w-full rounded-2xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 transition focus:border-luxe-gold focus:outline-none focus:ring-2 focus:ring-luxe-gold/20 dark:border-gray-700 dark:bg-luxe-dark dark:text-white;
+  }
+</style>
+{% endblock %}

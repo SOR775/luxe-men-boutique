@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Inventory Dashboard — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto p-8">
+  <h1 class="text-2xl font-bold mb-6">Inventory Dashboard</h1>
+
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+      {% for s in warehouse_summary %}
+      <div class="p-4 bg-white rounded shadow">
+        <h3 class="font-semibold">{{ s.warehouse.name }}</h3>
+        <p class="text-sm text-gray-500">Total units: <span class="font-bold">{{ s.total_qty }}</span></p>
+        <p class="text-sm text-gray-500">Low stock SKUs: <span class="font-bold">{{ s.low_count }}</span></p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <a href="{% url 'inventory:admin_sku_management' %}" class="inline-flex items-center rounded-full bg-luxe-gold px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white hover:bg-yellow-500 transition">SKU Management</a>
+      <a href="{% url 'inventory:admin_stock_history' %}" class="inline-flex items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-gray-900 hover:bg-gray-50 transition">Stock History</a>
+      <form method="post" action="{% url 'inventory:admin_low_stock_alerts' %}" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center rounded-full bg-red-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white hover:bg-red-600 transition">Send Low Stock Alerts</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="bg-white rounded p-4 shadow">
+    <h2 class="font-semibold mb-4">Low Stock Items</h2>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs text-gray-500 uppercase">
+          <th>Product / Variant</th>
+          <th>Warehouse</th>
+          <th>Qty</th>
+          <th>Threshold</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for li in low_items %}
+        <tr class="border-t">
+          <td>{{ li.variant.product.name }} — {{ li.variant.sku }}</td>
+          <td>{{ li.warehouse.name }}</td>
+          <td class="font-bold">{{ li.quantity }}</td>
+          <td>{{ li.low_stock_threshold }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-gray-500 p-4">No low stock items.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

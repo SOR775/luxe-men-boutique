@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Support Ticket — Luxe Men{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="bg-white rounded-3xl shadow p-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="font-serif text-3xl font-bold">{{ ticket.subject }}</h1>
+        <p class="text-sm text-gray-500">Submitted by {{ ticket.user.get_full_name|default:ticket.email }} on {{ ticket.created_at|date:"M d, Y H:i" }}</p>
+      </div>
+      <div class="space-x-2">
+        <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-600">{{ ticket.get_status_display }}</span>
+        <span class="inline-flex items-center rounded-full bg-luxe-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-luxe-gold">{{ ticket.get_priority_display }}</span>
+      </div>
+    </div>
+
+    <div class="rounded-3xl border border-gray-200 bg-gray-50 p-4 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">Conversation</h2>
+        <a href="{% url 'support:ticket_thread' ticket.pk %}" class="text-sm text-luxe-gold hover:underline">Open chat view</a>
+      </div>
+      <div class="space-y-3">
+        {% for message in messages|slice:':6' %}
+        <div class="flex {% if message.is_from_customer %}justify-start{% else %}justify-end{% endif %}">
+          <div class="max-w-[80%] rounded-2xl px-4 py-3 {% if message.is_from_customer %}bg-white text-gray-700{% else %}bg-luxe-gold text-white{% endif %}">
+            <p class="text-sm whitespace-pre-line">{{ message.body }}</p>
+            <p class="mt-2 text-[11px] opacity-70">{{ message.created_at|date:"M d, H:i" }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-gray-500">No messages yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'support:staff_reply' ticket.pk %}" class="mt-6 flex flex-col gap-3">
+      {% csrf_token %}
+      <textarea name="message" rows="3" class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-luxe-gold" placeholder="Reply to the customer..."></textarea>
+      <div class="flex justify-end">
+        <button type="submit" class="rounded-full bg-luxe-gold px-5 py-2.5 text-sm font-semibold text-white">Send reply</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
