@@ -3,6 +3,12 @@
 # Exit on error
 set -o errexit
 
+echo "Running migrations..."
+python manage.py migrate --noinput
+
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
+
 echo "Starting Background Worker..."
 # Start Celery worker in the background
 # We limit concurrency to 1 to save memory on the 512MB free tier
