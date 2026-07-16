@@ -9,9 +9,6 @@ mkdir -p logs
 echo "Running migrations..."
 python manage.py migrate --noinput
 
-echo "Flushing database..."
-python manage.py flush --noinput
-
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
