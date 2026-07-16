@@ -52,10 +52,6 @@ CHANNEL_LAYERS = {
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_MANIFEST_STRICT = False
 
-# Media — store all uploaded/seeded files on Cloudinary (survives restarts)
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-MEDIA_URL = 'https://res.cloudinary.com/'
-
 # Email - Using Resend HTTP API instead of blocked SMTP
 EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
 ANYMAIL = {

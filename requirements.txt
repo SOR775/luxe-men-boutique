@@ -20,5 +20,3 @@ drf-spectacular
 argon2-cffi
 requests
 django-anymail[resend]
-cloudinary
-django-cloudinary-storage

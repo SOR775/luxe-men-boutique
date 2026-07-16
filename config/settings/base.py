@@ -54,8 +54,6 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'channels',
     'anymail',
-    'cloudinary',
-    'cloudinary_storage',
 ]
 
 LOCAL_APPS = [
@@ -171,13 +169,6 @@ else:
 
 MEDIA_URL = env('MEDIA_URL', default='/media/')
 MEDIA_ROOT = BASE_DIR / env('MEDIA_ROOT', default='media')
-
-# ─── Cloudinary ─────────────────────────────────────────────────────────────────
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': env('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
-}
 
 # ─── Email ───────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
