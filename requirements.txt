@@ -9,7 +9,7 @@ celery
 gunicorn
 channels
 channels-redis
-uvicorn
+uvicorn[standard]
 django-filter
 drf-yasg
 pytest-django
