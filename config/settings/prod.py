@@ -38,12 +38,17 @@ CACHES = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
-# Channels with Redis
+# Channels with Redis (Upstash requires SSL + keepalive)
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [env('REDIS_URL')],
+            'hosts': [{
+                'address': env('REDIS_URL'),
+                'ssl_cert_reqs': None,
+            }],
+            'capacity': 100,
+            'expiry': 60,
         },
     }
 }
