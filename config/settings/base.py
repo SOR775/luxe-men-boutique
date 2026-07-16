@@ -258,6 +258,15 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# SSL options required for Upstash rediss:// TLS connections
+import ssl as _ssl
+CELERY_BROKER_USE_SSL = {
+    'ssl_cert_reqs': _ssl.CERT_NONE
+}
+CELERY_REDIS_BACKEND_USE_SSL = {
+    'ssl_cert_reqs': _ssl.CERT_NONE
+}
 CELERY_BEAT_SCHEDULE = {
     'escrow-auto-release': {
         'task': 'escrow.tasks.auto_release_expired_escrows',
