@@ -14,4 +14,5 @@ urlpatterns = [
     path('faq/', views.FAQView.as_view(), name='faq'),
     path('search/', views.SearchView.as_view(), name='search'),
     path('dark-mode/toggle/', views.toggle_dark_mode, name='toggle_dark_mode'),
+    path('test-email/', views.test_email, name='test_email'),
 ]
