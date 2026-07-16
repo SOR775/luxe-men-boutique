@@ -343,7 +343,7 @@ class EmailLoginCodeRequestView(View):
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             html_message=html_message,
-            fail_silently=True,
+            fail_silently=False,
         )
 
 
@@ -523,7 +523,7 @@ class ForgotPasswordView(View):
                 'reset_url': reset_url,
                 'site_name': settings.SITE_NAME,
             }),
-            fail_silently=True,
+            fail_silently=False,
         )
 
 
@@ -893,7 +893,7 @@ class AdminUserPasswordResetView(LoginRequiredMixin, View):
                     'reset_url': reset_url,
                     'site_name': settings.SITE_NAME,
                 }),
-                fail_silently=True,
+                fail_silently=False,
             )
             # audit the reset
             try:

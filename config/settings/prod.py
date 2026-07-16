@@ -52,5 +52,9 @@ CHANNEL_LAYERS = {
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_MANIFEST_STRICT = False
 
-# Email
-EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+# Email - Using Resend HTTP API instead of blocked SMTP
+EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
+ANYMAIL = {
+    "RESEND_API_KEY": env('RESEND_API_KEY', default=''),
+}
+

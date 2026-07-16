@@ -19,3 +19,4 @@ djangorestframework-simplejwt
 drf-spectacular
 argon2-cffi
 requests
+django-anymail[resend]

@@ -53,6 +53,7 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'django_filters',
     'channels',
+    'anymail',
 ]
 
 LOCAL_APPS = [
