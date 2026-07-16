@@ -316,3 +316,34 @@ def toggle_dark_mode(request):
     current = request.session.get('dark_mode', False)
     request.session['dark_mode'] = not current
     return JsonResponse({'dark_mode': not current})
+
+
+def test_email(request):
+    """Temporary view to test email configuration. Remove after debugging."""
+    from django.core.mail import send_mail
+    from django.conf import settings
+    
+    target_email = request.GET.get('email', settings.EMAIL_HOST_USER)
+    if not target_email:
+        return JsonResponse({'status': 'error', 'message': 'No target email provided. Pass ?email=you@domain.com'})
+
+    config_info = {
+        'SETTINGS_MODULE': getattr(settings, 'SETTINGS_MODULE', 'unknown'),
+        'EMAIL_BACKEND': getattr(settings, 'EMAIL_BACKEND', 'unknown'),
+        'EMAIL_HOST': getattr(settings, 'EMAIL_HOST', 'unknown'),
+        'EMAIL_HOST_USER': getattr(settings, 'EMAIL_HOST_USER', 'unknown'),
+    }
+
+    try:
+        send_mail(
+            subject='LUXE MEN - Test Email',
+            message='If you received this, email is working correctly!',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[target_email],
+            fail_silently=False,
+        )
+        return JsonResponse({'status': 'success', 'message': f'Test email sent to {target_email}', 'config': config_info})
+    except Exception as e:
+        import traceback
+        return JsonResponse({'status': 'error', 'message': str(e), 'traceback': traceback.format_exc(), 'config': config_info})
+
