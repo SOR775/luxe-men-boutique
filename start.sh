@@ -20,3 +20,4 @@ celery -A config worker --concurrency=1 -l info &
 echo "Starting Web Server..."
 # Start Uvicorn to handle both HTTP and WebSockets
 uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000}
+python seed_data.py
