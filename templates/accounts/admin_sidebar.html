@@ -1,3 +1,4 @@
+{% if user_admin_permissions %}
 <div class="rounded-3xl border border-gray-200/60 dark:border-white/[0.05] bg-white/85 dark:bg-luxe-gray/85 p-5 shadow-[0_18px_50px_rgba(15,15,15,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.16)]" x-data="{ open: true }">
   <div class="flex items-center justify-between gap-3">
     <p class="text-[0.68rem] uppercase tracking-[0.26em] text-gray-400 dark:text-gray-500 font-semibold">Admin navigation</p>
@@ -11,30 +12,8 @@
     {% if 'access_admin_dashboard' in user_admin_permissions %}
     <a href="{% url 'accounts:admin_dashboard' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'dashboard' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Dashboard</a>
     {% endif %}
-    {% if 'access_orders' in user_admin_permissions %}
-    <a href="{% url 'orders:admin_orders' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'orders' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Orders</a>
-    {% endif %}
-    {% if 'access_products' in user_admin_permissions %}
-    <a href="{% url 'products:admin_products' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'products' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Products</a>
-    <a href="{% url 'products:admin_categories' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'categories' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Categories</a>
-    {% endif %}
-    {% if 'access_inventory_dashboard' in user_admin_permissions %}
-    <a href="{% url 'inventory:admin_dashboard' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'inventory' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Inventory</a>
-    {% endif %}
-    {% if 'access_inventory_sku' in user_admin_permissions %}
-    <a href="{% url 'inventory:admin_sku_management' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'sku' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">SKU management</a>
-    {% endif %}
-    {% if 'access_inventory_stock_history' in user_admin_permissions %}
-    <a href="{% url 'inventory:admin_stock_history' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'stock_history' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Stock history</a>
-    {% endif %}
-    {% if 'access_coupons' in user_admin_permissions %}
-    <a href="{% url 'orders:admin_coupons' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'coupons' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Coupons</a>
-    {% endif %}
-    {% if 'access_bulk_order_actions' in user_admin_permissions %}
-    <a href="{% url 'orders:admin_bulk_actions' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'bulk_actions' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Bulk order actions</a>
-    {% endif %}
-    {% if 'access_rma' in user_admin_permissions %}
-    <a href="{% url 'orders:admin_rma' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'rma' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">RMA requests</a>
+    {% if 'access_support_queue' in user_admin_permissions %}
+    <a href="{% url 'support:ticket_admin_list' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'support' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Support queue</a>
     {% endif %}
     {% if 'access_support_queue' in user_admin_permissions %}
     <a href="{% url 'support:ticket_admin_list' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'support' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Support queue</a>
@@ -59,3 +38,4 @@
     {% endif %}
   </nav>
 </div>
+{% endif %}

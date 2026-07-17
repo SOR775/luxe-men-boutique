@@ -6,6 +6,20 @@ from django.views.generic import TemplateView, View
 from django.http import JsonResponse
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.db import connection
+
+
+def healthz(request):
+    """
+    Lightweight liveness/readiness endpoint for Render and uptime checks.
+    Returns 200 only when the app can reach the configured database.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        return JsonResponse({'status': 'ok', 'database': 'ok'})
+    except Exception as exc:
+        return JsonResponse({'status': 'error', 'database': 'unavailable', 'detail': str(exc)}, status=503)
 
 
 class HomeView(TemplateView):

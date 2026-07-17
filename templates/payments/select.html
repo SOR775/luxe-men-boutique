@@ -166,7 +166,7 @@
         <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">M-Pesa Phone Number *</label>
         <div class="flex items-center border-2 border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden focus-within:border-luxe-gold transition">
           <span class="bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm font-bold text-gray-500 border-r border-gray-200 dark:border-gray-700">+254</span>
-          <input type="tel" x-model="phone" :disabled="loading"
+          <input type="tel" x-model="phone" :disabled="loading" autofocus required
             class="flex-1 px-4 py-3 text-sm bg-white dark:bg-luxe-dark focus:outline-none dark:text-white"
             placeholder="712 345 678" maxlength="12">
         </div>

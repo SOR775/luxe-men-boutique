@@ -266,8 +266,8 @@ def seed():
             'category': categories['Suits'],
             'brand': brands['Corneliani'],
             'collection': collections['Autumn 2026'],
-            'base_price': Decimal('45000.00'),
-            'compare_at_price': Decimal('52000.00'),
+            'base_price': Decimal('5.00'),
+            'compare_at_price': Decimal('5.00'),
             'description': (
                 'Premium Italian wool tuxedo with satin peak lapels, tailored '
                 'for a sharp, modern silhouette. Fully canvassed construction '
@@ -293,7 +293,7 @@ def seed():
             'category': categories['Suits'],
             'brand': brands['Corneliani'],
             'collection': collections['Autumn 2026'],
-            'base_price': Decimal('38000.00'),
+            'base_price': Decimal('5.00'),
             'compare_at_price': None,
             'description': (
                 'A versatile charcoal grey suit cut from a durable wool-blend '
@@ -319,7 +319,7 @@ def seed():
             'category': categories['Suits'],
             'brand': brands['Corneliani'],
             'collection': collections['Spring Formal 2027'],
-            'base_price': Decimal('32000.00'),
+            'base_price': Decimal('5.00'),
             'compare_at_price': None,
             'description': (
                 'Breathable Irish linen suit in a warm beige tone, unstructured '
@@ -496,8 +496,8 @@ def seed():
             'category': categories['Outerwear'],
             'brand': brands['Barbour'],
             'collection': collections['Winter Essentials 2026'],
-            'base_price': Decimal('22000.00'),
-            'compare_at_price': Decimal('25500.00'),
+            'base_price': Decimal('100.00'),
+            'compare_at_price': Decimal('50.00'),
             'description': (
                 'Weatherproof waxed cotton jacket with a corduroy collar and '
                 'tartan lining — a British countryside classic built for decades '
@@ -547,8 +547,8 @@ def seed():
             'category': categories['Knitwear'],
             'brand': brands['Loro Piana'],
             'collection': collections['Winter Essentials 2026'],
-            'base_price': Decimal('29500.00'),
-            'compare_at_price': Decimal('34000.00'),
+            'base_price': Decimal('200.00'),
+            'compare_at_price': Decimal('100.00'),
             'description': (
                 'Two-ply cashmere crew neck sweater, spun from fine highland '
                 'fibers for exceptional softness and warmth without bulk.'
@@ -623,8 +623,8 @@ def seed():
             'category': categories['Trousers'],
             'brand': brands["Drake's"],
             'collection': None,
-            'base_price': Decimal('8200.00'),
-            'compare_at_price': Decimal('9500.00'),
+            'base_price': Decimal('800.00'),
+            'compare_at_price': Decimal('900.00'),
             'description': (
                 'Garment-dyed cotton chinos with a slim straight leg — a smart-'
                 'casual staple that pairs with everything from a blazer to a tee.'

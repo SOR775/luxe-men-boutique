@@ -99,7 +99,7 @@ class SupportTicketDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['messages'] = self.object.messages.select_related('sender').all()
+        context['ticket_messages'] = self.object.messages.select_related('sender').all()
         return context
 
 
@@ -215,14 +215,14 @@ def ticket_thread(request, pk):
                 return JsonResponse({'success': True, 'message': 'Message sent.', 'reply_body': reply_body})
         return redirect('support:ticket_thread', pk=ticket.pk)
 
-    messages_qs = ticket.messages.select_related('sender').all()
+    thread_messages = ticket.messages.select_related('sender').all()
     suggestions = [
         'Where is my order?',
         'How do I return an item?',
         'What payment methods do you accept?',
         'How do I contact a human?',
     ]
-    return render(request, 'support/thread.html', {'ticket': ticket, 'messages': messages_qs, 'suggestions': suggestions})
+    return render(request, 'support/thread.html', {'ticket': ticket, 'thread_messages': thread_messages, 'suggestions': suggestions})
 
 
 @staff_member_required

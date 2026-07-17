@@ -581,6 +581,31 @@ class ToggleWishlistView(LoginRequiredMixin, View):
 from django.contrib import messages
 from django.shortcuts import redirect
 
+
+class HelpfulVoteView(LoginRequiredMixin, View):
+    """Mark a product review as helpful once per session."""
+    def post(self, request, pk, review_pk):
+        product = get_object_or_404(Product, pk=pk)
+        from .models import ProductReview
+
+        review = get_object_or_404(ProductReview, pk=review_pk, product=product)
+        voted_review_ids = request.session.get('helpful_review_votes', []) or []
+        if isinstance(voted_review_ids, str):
+            voted_review_ids = [voted_review_ids]
+        voted_review_ids = [str(v) for v in voted_review_ids if str(v)]
+
+        if str(review.pk) in voted_review_ids:
+            messages.info(request, 'You already marked this review as helpful.')
+        else:
+            ProductReview.objects.filter(pk=review.pk).update(helpful_votes=F('helpful_votes') + 1)
+            voted_review_ids.insert(0, str(review.pk))
+            request.session['helpful_review_votes'] = voted_review_ids[:100]
+            request.session.modified = True
+            messages.success(request, 'Thanks for marking this review as helpful.')
+
+        return redirect('products:detail', slug=product.slug)
+
+
 class SubmitReviewView(LoginRequiredMixin, View):
     """Submit a review for a product."""
     def post(self, request, pk):

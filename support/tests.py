@@ -240,6 +240,29 @@ class SupportChatTests(TestCase):
         self.assertEqual(response.json()['success'], True)
         self.assertTrue(SupportMessage.objects.filter(ticket=ticket, body='I need help quickly').exists())
 
+    def test_success_message_is_rendered_on_the_support_thread_page_after_redirect(self):
+        customer = get_user_model().objects.create_user(
+            username='message-customer',
+            email='message-customer@example.com',
+            password='secret123',
+        )
+        ticket = SupportTicket.objects.create(
+            user=customer,
+            email='message-customer@example.com',
+            subject='Redirect message check',
+            description='Need a fast response',
+        )
+
+        self.client.force_login(customer)
+        response = self.client.post(
+            reverse('support:ticket_thread', kwargs={'pk': ticket.pk}),
+            {'message': 'I need help quickly'},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Message sent.')
+
     def test_ajax_reply_includes_bot_message_for_customer_queries(self):
         customer = get_user_model().objects.create_user(
             username='ajax-bot-customer',

@@ -20,7 +20,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         response['X-Content-Type-Options'] = 'nosniff'
         response['X-XSS-Protection'] = '1; mode=block'
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        response['Permissions-Policy'] = 'geolocation=*, microphone=(), camera=()'
         if not settings.DEBUG:
             response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
         return response

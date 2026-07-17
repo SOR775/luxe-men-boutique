@@ -1,6 +1,30 @@
 {% extends "base.html" %}
 {% load static math_filters %}
 
+{% block page_preloader %}
+<div id="site-preloader" class="site-preloader" aria-hidden="true">
+  <div class="grain"></div>
+  <div class="frame">
+    <div class="mark"></div>
+    <div class="rule top"></div>
+    <h1 class="wordmark" aria-label="LUXE WEARS">
+      <span class="word" data-word="LUXE"></span><span class="space"></span><span class="word accent" data-word="WEARS"></span>
+    </h1>
+    <div class="rule bottom"></div>
+    <p class="tagline">Fine Ready-to-Wear</p>
+    <div class="progress">
+      <div class="progress-track">
+        <div class="progress-fill" id="site-preloader-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span>Loading</span>
+        <span><span class="value" id="site-preloader-percent">00</span>%</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 {% block title %}Admin Dashboard — Luxe Men{% endblock %}
 
 {% block content %}
@@ -19,7 +43,7 @@
         <p class="text-[0.78rem] text-gray-400 dark:text-gray-500 font-light">Quick overview of store health</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4 mb-8 sm:mb-10">
     <div class="group fade-card rounded-2xl border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-gray-200/80 dark:hover:border-white/[0.08]">
       <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Orders</p>
       <p class="text-3xl font-bold mt-2.5 tracking-tight text-gray-900 dark:text-white">{{ orders_count }}</p>
@@ -28,9 +52,21 @@
       <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Revenue (total)</p>
       <p class="text-3xl font-bold mt-2.5 tracking-tight text-gray-900 dark:text-white">KES {{ total_revenue }}</p>
     </div>
+    <div class="group fade-card rounded-2xl border border-amber-100 dark:border-amber-500/[0.08] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-amber-200 dark:hover:border-amber-500/[0.15]">
+      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Pending Orders</p>
+      <p class="text-3xl font-bold mt-2.5 tracking-tight text-amber-600 dark:text-amber-400">{{ orders_by_status.pending|default:0 }}</p>
+    </div>
+    <div class="group fade-card rounded-2xl border border-orange-100 dark:border-orange-500/[0.08] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-orange-200 dark:hover:border-orange-500/[0.15]">
+      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Payment Alerts</p>
+      <p class="text-3xl font-bold mt-2.5 tracking-tight text-orange-600 dark:text-orange-400">{{ payment_alert_count }}</p>
+    </div>
     <div class="group fade-card rounded-2xl border border-red-100 dark:border-red-500/[0.08] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-red-200 dark:hover:border-red-500/[0.15]">
+      <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Escrow Alerts</p>
+      <p class="text-3xl font-bold mt-2.5 tracking-tight text-red-500 dark:text-red-400">{{ escrow_alert_count }}</p>
+    </div>
+    <div class="group fade-card rounded-2xl border border-emerald-100 dark:border-emerald-500/[0.08] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_40px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_16px_40px_rgba(0,0,0,0.2)] hover:border-emerald-200 dark:hover:border-emerald-500/[0.15]">
       <p class="text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500">Low Stock SKUs</p>
-      <p class="text-3xl font-bold mt-2.5 tracking-tight text-red-500 dark:text-red-400">{{ low_stock_count }}</p>
+      <p class="text-3xl font-bold mt-2.5 tracking-tight text-emerald-600 dark:text-emerald-400">{{ low_stock_count }}</p>
     </div>
   </div>
 
@@ -62,6 +98,96 @@
         </li>
         {% endfor %}
       </ul>
+    </div>
+  </div>
+
+  <div class="mt-4 sm:mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+    <div class="rounded-2xl border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white">Attention Queue</h3>
+        <div class="flex items-center gap-2 text-[0.68rem] uppercase tracking-[0.15em]">
+          <a href="{% url 'accounts:admin_dashboard' %}" class="px-2.5 py-1 rounded-full {% if attention_filter == '' and attention_state == 'open' %}bg-luxe-gold text-white{% else %}bg-gray-100 dark:bg-white/[0.05] text-gray-500 dark:text-gray-400{% endif %}">Open</a>
+          <a href="{% url 'accounts:admin_dashboard' %}?alert_state=resolved" class="px-2.5 py-1 rounded-full {% if attention_state == 'resolved' %}bg-luxe-gold text-white{% else %}bg-gray-100 dark:bg-white/[0.05] text-gray-500 dark:text-gray-400{% endif %}">Resolved</a>
+          <a href="{% url 'accounts:admin_dashboard' %}?alert_type=payment" class="px-2.5 py-1 rounded-full {% if attention_filter == 'payment' %}bg-luxe-gold text-white{% else %}bg-gray-100 dark:bg-white/[0.05] text-gray-500 dark:text-gray-400{% endif %}">Payment</a>
+          <a href="{% url 'accounts:admin_dashboard' %}?alert_type=escrow" class="px-2.5 py-1 rounded-full {% if attention_filter == 'escrow' %}bg-luxe-gold text-white{% else %}bg-gray-100 dark:bg-white/[0.05] text-gray-500 dark:text-gray-400{% endif %}">Escrow</a>
+        </div>
+      </div>
+      {% if attention_queue %}
+      <div class="space-y-3">
+        {% for item in attention_queue %}
+        <div class="rounded-xl border {% if item.priority == 'high' %}border-red-200 dark:border-red-500/[0.15] bg-red-50/40 dark:bg-red-500/[0.03]{% else %}border-amber-200 dark:border-amber-500/[0.15] bg-amber-50/40 dark:bg-amber-500/[0.03]{% endif %} p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-gray-900 dark:text-white truncate">{{ item.title }}</p>
+              <p class="text-[0.72rem] text-gray-400 dark:text-gray-500 font-light mt-0.5">{{ item.detail }}</p>
+              <p class="text-[0.68rem] text-gray-400 dark:text-gray-500 font-light mt-1">{{ item.age_display }}</p>
+            </div>
+            <span class="text-[0.7rem] font-semibold uppercase tracking-[0.1em] {% if item.priority == 'high' %}text-red-600 dark:text-red-400{% else %}text-amber-600 dark:text-amber-400{% endif %} whitespace-nowrap">{{ item.priority }}</span>
+          </div>
+          <div class="mt-3 flex items-center gap-3 flex-wrap">
+            <a href="{{ item.action_url }}" class="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-luxe-gold hover:text-yellow-500 transition-colors duration-200">{{ item.action_label|default:'Review' }}</a>
+            {% if item.release_url %}
+            <form method="post" action="{{ item.release_url }}" class="inline">
+              {% csrf_token %}
+              <button type="submit" class="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-emerald-600 hover:text-emerald-400 transition-colors duration-200">Release</button>
+            </form>
+            {% endif %}
+            <a href="{{ item.review_url }}" class="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-gray-500 dark:text-gray-400 hover:text-luxe-gold transition-colors duration-200">Dismiss</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08] p-8 text-center">
+        <p class="text-sm text-gray-400 dark:text-gray-500 font-light">No items currently need attention.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-4">Payment Alerts</h3>
+      {% if payment_alerts %}
+      <div class="space-y-3">
+        {% for payment in payment_alerts %}
+        <div class="rounded-xl border border-orange-100 dark:border-orange-500/[0.08] bg-orange-50/40 dark:bg-orange-500/[0.03] p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-gray-900 dark:text-white truncate">Order {{ payment.order.order_number }}</p>
+              <p class="text-[0.72rem] text-gray-400 dark:text-gray-500 font-light mt-0.5">{{ payment.method|upper }} • {{ payment.get_status_display }}</p>
+            </div>
+            <span class="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-orange-600 dark:text-orange-400 whitespace-nowrap">KES {{ payment.amount }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08] p-8 text-center">
+        <p class="text-sm text-gray-400 dark:text-gray-500 font-light">No payment alerts right now.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
+      <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-4">Escrow Alerts</h3>
+      {% if escrow_alerts %}
+      <div class="space-y-3">
+        {% for escrow in escrow_alerts %}
+        <div class="rounded-xl border border-red-100 dark:border-red-500/[0.08] bg-red-50/40 dark:bg-red-500/[0.03] p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-gray-900 dark:text-white truncate">Order {{ escrow.order.order_number }}</p>
+              <p class="text-[0.72rem] text-gray-400 dark:text-gray-500 font-light mt-0.5">{{ escrow.get_status_display }}</p>
+            </div>
+            <span class="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-red-600 dark:text-red-400 whitespace-nowrap">KES {{ escrow.amount }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08] p-8 text-center">
+        <p class="text-sm text-gray-400 dark:text-gray-500 font-light">No escrow alerts right now.</p>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -119,33 +245,23 @@
     <div class="rounded-2xl fade-card border border-gray-200/50 dark:border-white/[0.05] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]">
       <h3 class="text-[0.95rem] font-semibold tracking-wide text-gray-900 dark:text-white mb-4">Quick Links</h3>
       <ul class="space-y-1">
-        {% if 'access_orders' in user_admin_permissions %}
-        <li><a href="{% url 'orders:admin_orders' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Order Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
-        {% endif %}
-        {% if 'access_products' in user_admin_permissions %}
-        <li><a href="{% url 'products:admin_products' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Product Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
-        <li><a href="{% url 'products:admin_categories' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Category Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
-        {% endif %}
-        {% if 'access_coupons' in user_admin_permissions %}
-        <li><a href="{% url 'orders:admin_coupons' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Coupon Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
-        {% endif %}
         {% if 'access_audit_log' in user_admin_permissions %}
         <li><a href="{% url 'accounts:admin_audit_log' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Audit Logs</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
         {% endif %}
-        {% if 'access_inventory_dashboard' in user_admin_permissions %}
-        <li><a href="{% url 'inventory:admin_dashboard' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Inventory Dashboard</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% if 'access_system_health' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:system_health' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>System Health</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
         {% endif %}
-        {% if 'access_inventory_sku' in user_admin_permissions %}
-        <li><a href="{% url 'inventory:admin_sku_management' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>SKU Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% if 'access_user_management' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:user_management' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>User Management</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
         {% endif %}
-        {% if 'access_inventory_stock_history' in user_admin_permissions %}
-        <li><a href="{% url 'inventory:admin_stock_history' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Stock History</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% if 'access_dispute_resolution' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:disputes' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Dispute Resolution</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
         {% endif %}
-        {% if 'access_bulk_order_actions' in user_admin_permissions %}
-        <li><a href="{% url 'orders:admin_bulk_actions' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Bulk Order Actions</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% if 'access_content_moderation' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:moderation' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>Content Moderation</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
         {% endif %}
-        {% if 'access_rma' in user_admin_permissions %}
-        <li><a href="{% url 'orders:admin_rma' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>RMA Requests</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
+        {% if 'access_settings' in user_admin_permissions %}
+        <li><a href="{% url 'dashboard:settings' %}" class="ripple-btn flex items-center justify-between py-2.5 px-3 rounded-lg text-[0.82rem] text-gray-600 dark:text-gray-400 hover:text-luxe-gold dark:hover:text-luxe-gold hover:bg-luxe-gold/[0.04] transition-all duration-200 font-light"><span>System Settings</span><svg class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg></a></li>
         {% endif %}
       </ul>
     </div>

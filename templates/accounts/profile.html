@@ -28,16 +28,6 @@
     </div>
   </div>
 
-  {% if messages %}
-  <div class="space-y-2">
-    {% for message in messages %}
-    <div class="rounded-2xl p-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
-      {{ message }}
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
   <form method="post" action="{% url 'accounts:profile' %}" enctype="multipart/form-data" class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:border-gray-700 dark:bg-luxe-gray/90">
     {% csrf_token %}
 

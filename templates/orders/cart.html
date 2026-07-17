@@ -16,6 +16,17 @@
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     {% if items %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resumeCheckout = document.getElementById('resume-checkout');
+            if (resumeCheckout) {
+                requestAnimationFrame(() => {
+                    resumeCheckout.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    resumeCheckout.focus({ preventScroll: true });
+                });
+            }
+        });
+    </script>
     <div class="flex flex-col lg:flex-row gap-10">
 
       <!-- Cart Items -->
@@ -26,7 +37,7 @@
               <p class="text-sm font-semibold text-gray-900 dark:text-white">You still have items waiting for you</p>
               <p class="text-sm text-gray-600 dark:text-gray-300">Complete your order before it’s gone.</p>
             </div>
-            <a href="{% url 'checkout:checkout' %}" class="inline-flex items-center justify-center rounded-full bg-luxe-gold px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-600 transition">Resume checkout</a>
+            <a id="resume-checkout" href="{% url 'checkout:checkout' %}" class="inline-flex items-center justify-center rounded-full bg-luxe-gold px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-600 transition">Resume checkout</a>
           </div>
         </div>
 

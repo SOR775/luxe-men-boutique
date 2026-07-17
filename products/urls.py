@@ -14,4 +14,5 @@ urlpatterns = [
     path('<slug:slug>/', views.ProductDetailView.as_view(), name='detail'),
     path('<uuid:pk>/wishlist/', views.ToggleWishlistView.as_view(), name='toggle_wishlist'),
     path('<uuid:pk>/review/', views.SubmitReviewView.as_view(), name='submit_review'),
+    path('<uuid:pk>/review/<uuid:review_pk>/helpful/', views.HelpfulVoteView.as_view(), name='helpful_vote'),
 ]

@@ -45,6 +45,9 @@ urlpatterns = [
     # Notifications
     path('notifications/', include('notifications.urls', namespace='notifications')),
 
+    # Analytics
+    path('analytics/', include('analytics.urls', namespace='analytics')),
+
     # Wallets
     path('wallet/', include('wallets.urls', namespace='wallets')),
 

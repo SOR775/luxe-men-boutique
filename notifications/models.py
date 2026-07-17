@@ -1,5 +1,6 @@
 import uuid
 import logging
+import threading
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -53,6 +54,14 @@ class Notification(models.Model):
         }
 
     def send_email(self):
+        thread = threading.Thread(
+            target=self._send_email_in_background,
+            name=f'notification-email-{self.pk}',
+            daemon=True,
+        )
+        thread.start()
+
+    def _send_email_in_background(self):
         if not self.user.email or not getattr(self.user, 'email_notifications', True):
             return
 
@@ -65,12 +74,18 @@ class Notification(models.Model):
                 recipient_list=[self.user.email],
                 fail_silently=True,
             )
-            self.email_sent = True
-            self.save(update_fields=['email_sent'])
         except Exception:
             logger.exception('Failed to send notification email for %s', self.user)
 
     def send_sms(self):
+        thread = threading.Thread(
+            target=self._send_sms_in_background,
+            name=f'notification-sms-{self.pk}',
+            daemon=True,
+        )
+        thread.start()
+
+    def _send_sms_in_background(self):
         if not getattr(self.user, 'sms_notifications', True) or not getattr(self.user, 'phone', None):
             return
 
@@ -89,8 +104,6 @@ class Notification(models.Model):
                 from_=from_number,
                 to=self.user.phone,
             )
-            self.sms_sent = True
-            self.save(update_fields=['sms_sent'])
         except ImportError:
             logger.warning('Twilio library not installed; SMS notifications disabled.')
         except Exception:

@@ -31,27 +31,7 @@
         Back
     </button>
 
-    <div id="site-preloader" class="site-preloader" aria-hidden="true">
-        <div class="grain"></div>
-        <div class="frame">
-            <div class="mark"></div>
-            <div class="rule top"></div>
-            <h1 class="wordmark" aria-label="LUXE WEARS">
-                <span class="word" data-word="LUXE"></span><span class="space"></span><span class="word accent" data-word="WEARS"></span>
-            </h1>
-            <div class="rule bottom"></div>
-            <p class="tagline">Fine Ready-to-Wear</p>
-            <div class="progress">
-                <div class="progress-track">
-                    <div class="progress-fill" id="site-preloader-fill"></div>
-                </div>
-                <div class="progress-meta">
-                    <span>Loading</span>
-                    <span><span class="value" id="site-preloader-percent">00</span>%</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% block page_preloader %}{% endblock %}
 
     <!-- Navigation -->
     <nav class="fixed w-full z-50 transition-all duration-500 border-b border-black/[0.03] dark:border-white/[0.03] safe-top" :class="darkMode ? 'glass' : 'glass-light'">
@@ -226,6 +206,17 @@
 
     <!-- Main Content -->
     <main id="main-content" class="flex-grow pt-20 sm:pt-24 pb-24 md:pb-0">
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+            <div class="space-y-2">
+                {% for message in messages %}
+                <div class="rounded-2xl border px-4 py-3 text-sm {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-emerald-200 bg-emerald-50 text-emerald-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
         {% block content %}
         {% endblock content %}
     </main>
@@ -295,6 +286,15 @@
                 </div>
                 <span class="text-[9px] uppercase tracking-[0.12em] font-semibold">Cart</span>
             </a>
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'notifications:list' %}" class="bottom-nav-item flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-luxe-gold dark:text-gray-500 dark:hover:text-luxe-gold transition-colors duration-200 relative" aria-label="Notifications">
+                <div class="relative">
+                    <svg class="w-[1.2rem] h-[1.2rem] mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span class="absolute -top-1 -right-2.5 bg-red-500 text-white text-[9px] font-bold rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center pointer-events-none shadow-sm">{{ notifications_count|default:"0" }}</span>
+                </div>
+                <span class="text-[9px] uppercase tracking-[0.12em] font-semibold">Notifications</span>
+            </a>
+            {% endif %}
             <a href="{% url 'accounts:profile' %}" class="bottom-nav-item flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-luxe-gold dark:text-gray-500 dark:hover:text-luxe-gold transition-colors duration-200">
                 <svg class="w-[1.2rem] h-[1.2rem] mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 <span class="text-[9px] uppercase tracking-[0.12em] font-semibold">Profile</span>
@@ -365,8 +365,72 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.5.0/dist/cdn.min.js"></script>
     <script>
+        function guideUserToPrimaryFormField() {
+            const mainContent = document.querySelector('main');
+            if (!mainContent) return;
+
+            const selector = 'input:not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([disabled]), textarea:not([disabled]), select:not([disabled])';
+            const preferred = mainContent.querySelector('[autofocus]') || mainContent.querySelector('input[required], textarea[required], select[required]');
+            const candidate = preferred || [...mainContent.querySelectorAll(selector)].filter((el) => {
+                if (el.closest('form[action*="newsletter"]')) return false;
+                if (el.closest('.newsletter') || el.id === 'newsletter-email') return false;
+                if (el.closest('[data-newsletter-form]')) return false;
+                const style = window.getComputedStyle(el);
+                if (style.display === 'none' || style.visibility === 'hidden') return false;
+                if (el.closest('[style*="display:none"]')) return false;
+                const rect = el.getBoundingClientRect();
+                return rect.width > 0 || rect.height > 0;
+            }).find(Boolean);
+
+            if (!candidate) return;
+            const activeElement = document.activeElement;
+            if (activeElement && activeElement.tagName !== 'BODY' && activeElement !== candidate) return;
+
+            requestAnimationFrame(() => {
+                candidate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                candidate.focus({ preventScroll: true });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.add('page-ready');
+
+            if ('scrollRestoration' in window.history) {
+                window.history.scrollRestoration = 'manual';
+            }
+
+            const storageKey = `luxe-scroll:${window.location.pathname}`;
+            const savedScroll = Number(sessionStorage.getItem(storageKey) || 0);
+            let scrollSaveFrame = null;
+
+            const saveScroll = () => {
+                if (scrollSaveFrame) {
+                    cancelAnimationFrame(scrollSaveFrame);
+                }
+                scrollSaveFrame = requestAnimationFrame(() => {
+                    sessionStorage.setItem(storageKey, String(window.scrollY || window.pageYOffset || 0));
+                });
+            };
+
+            window.addEventListener('scroll', saveScroll, { passive: true });
+            window.addEventListener('beforeunload', saveScroll);
+            window.addEventListener('pagehide', saveScroll);
+            window.addEventListener('pageshow', () => {
+                const restoredScroll = Number(sessionStorage.getItem(storageKey) || 0);
+                if (restoredScroll > 0) {
+                    requestAnimationFrame(() => {
+                        window.scrollTo({ top: restoredScroll, left: 0, behavior: 'auto' });
+                    });
+                }
+            });
+
+            if (savedScroll > 0) {
+                requestAnimationFrame(() => {
+                    window.scrollTo({ top: savedScroll, left: 0, behavior: 'auto' });
+                });
+            }
+
+            guideUserToPrimaryFormField();
         });
 
         function showToast(message, type = 'info', title = '') {
@@ -430,6 +494,9 @@
                     });
                     // Show toast
                     showCartToast(data.message || 'Item added to cart!');
+                    window.setTimeout(() => {
+                        window.location.href = '{% url "orders:cart" %}';
+                    }, 650);
                 } else {
                     showCartToast(data.message || 'Could not add item.', true);
                 }
@@ -490,6 +557,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // populate on load
             fetchRecentNotifications();
+            window.__notifRefreshInterval = window.setInterval(fetchRecentNotifications, 15000);
 
             // mark all read button
             const markAllBtn = document.getElementById('notif-mark-all');
@@ -541,50 +609,8 @@
             }
         }
 
-        {% if request.user.is_authenticated %}
-        (function() {
-            const countBadge = document.getElementById('nav-notif-count');
-            const getWsProtocol = () => window.location.protocol === 'https:' ? 'wss' : 'ws';
-            const socketUrl = `${getWsProtocol()}://${window.location.host}/ws/notifications/`;
-            const socket = new WebSocket(socketUrl);
 
-            const setBadgeCount = (count) => {
-                if (!countBadge) return;
-                countBadge.textContent = Number(count || 0);
-            };
-
-            const toast = (message) => {
-                const toastEl = document.createElement('div');
-                toastEl.className = 'fixed bottom-20 md:bottom-4 inset-x-4 md:inset-x-auto md:right-4 md:max-w-sm bg-gray-900 dark:bg-[#1a1a1a] text-white rounded-xl shadow-2xl p-4 border border-white/[0.08]';
-                toastEl.style.zIndex = '9999';
-                toastEl.innerHTML = `<strong class="block font-semibold text-sm">New notification</strong><p class="mt-1.5 text-sm leading-relaxed text-gray-300 dark:text-gray-400">${message}</p>`;
-                document.body.appendChild(toastEl);
-                setTimeout(() => toastEl.remove(), 7000);
-            };
-
-            socket.addEventListener('message', (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'notification' && data.payload) {
-                        const currentCount = Number(countBadge?.textContent || 0) || 0;
-                        setBadgeCount(currentCount + 1);
-                        toast(data.payload.title + '\n' + data.payload.message);
-                    }
-                } catch (error) {
-                    console.error('Notification socket parse error', error);
-                }
-            });
-
-            socket.addEventListener('close', () => {
-                console.info('Notification socket closed.');
-            });
-
-            socket.addEventListener('error', (error) => {
-                console.error('Notification socket error', error);
-            });
-        })();
-        {% endif %}
-
+        {% if not debug %}
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
@@ -596,6 +622,7 @@
                     });
             });
         }
+        {% endif %}
     </script>
 </body>
 </html>

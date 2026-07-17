@@ -253,3 +253,38 @@ class ProductDetailCartTests(TestCase):
         self.assertIsNone(context['image_360_url'])
         self.assertIsNone(context['video_url'])
         self.assertIsNone(context['manual_url'])
+
+
+class ProductReviewHelpfulVoteTests(TestCase):
+    def setUp(self):
+        self.product = Product.objects.create(
+            name='Test Shirt',
+            slug='test-shirt',
+            base_price=50,
+            visibility=Product.Visibility.PUBLISHED,
+        )
+        self.variant = ProductVariant.objects.create(
+            product=self.product,
+            sku='TEST-1',
+            size='M',
+            color='Blue',
+            price_adjustment=0,
+            is_active=True,
+        )
+        self.user = get_user_model().objects.create_user(username='reviewer', email='reviewer@example.com', password='secret123')
+        self.review = ProductReview.objects.create(
+            user=self.user,
+            product=self.product,
+            rating=5,
+            comment='Excellent fit',
+            helpful_votes=0,
+        )
+
+    def test_authenticated_user_can_mark_review_as_helpful_once(self):
+        self.client.login(username='reviewer', password='secret123')
+
+        response = self.client.post(reverse('products:helpful_vote', args=[self.product.id, self.review.id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.helpful_votes, 1)

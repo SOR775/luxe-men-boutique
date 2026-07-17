@@ -14,6 +14,7 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -27,12 +28,15 @@ import io
 import json
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum, Count, F
+from django.utils import timezone
 
 from support.models import SupportTicket
 
 from orders.models import Order, OrderItem, Coupon
 from inventory.models import Stock
 from products.models import Product
+from payments.models import Payment
+from escrow.models import EscrowTransaction
 
 from .forms import (
     RegistrationForm, LoginForm, ProfileUpdateForm, AddressForm,
@@ -409,9 +413,9 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
     def dispatch(self, request, *args, **kwargs):
         if not getattr(request.user, 'is_authenticated', False):
             return redirect('accounts:login')
-        if not request.user.has_admin_permission('access_admin_dashboard'):
-            raise PermissionDenied()
-        return super().dispatch(request, *args, **kwargs)
+        if request.user.is_staff or request.user.has_admin_permission('access_admin_dashboard'):
+            return super().dispatch(request, *args, **kwargs)
+        raise PermissionDenied()
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -422,6 +426,145 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
         ctx['customers_count'] = User.objects.count()
         ctx['products_count'] = Product.objects.filter(visibility=Product.Visibility.PUBLISHED).count()
         ctx['coupons_count'] = Coupon.objects.count()
+
+        ctx['orders_by_status'] = dict(
+            Order.objects.values('status').annotate(count=Count('id')).values_list('status', 'count')
+        )
+        attention_filter = self.request.GET.get('alert_type', '').strip().lower()
+        attention_state = self.request.GET.get('alert_state', 'open').strip().lower()
+        if attention_state not in {'open', 'resolved'}:
+            attention_state = 'open'
+
+        session = getattr(self.request, 'session', None)
+        reviewed_alerts = []
+        if session is not None:
+            reviewed_alerts = session.get('reviewed_dashboard_alerts', []) or []
+        if not isinstance(reviewed_alerts, list):
+            reviewed_alerts = list(reviewed_alerts)
+
+        reviewed_key = self.request.GET.get('reviewed', '').strip()
+        if reviewed_key and session is not None:
+            if reviewed_key not in reviewed_alerts:
+                reviewed_alerts.append(reviewed_key)
+                session['reviewed_dashboard_alerts'] = reviewed_alerts
+                session.modified = True
+
+        ctx['attention_filter'] = attention_filter
+        ctx['attention_state'] = attention_state
+        ctx['reviewed_alert_count'] = len(reviewed_alerts)
+
+        open_payment_statuses = [
+            Payment.Status.FAILED,
+            Payment.Status.PENDING,
+            Payment.Status.PROCESSING,
+        ]
+        resolved_payment_statuses = [
+            Payment.Status.COMPLETED,
+            Payment.Status.REFUNDED,
+            Payment.Status.CANCELLED,
+        ]
+
+        if attention_state == 'resolved':
+            payment_alert_qs = Payment.objects.filter(
+                status__in=resolved_payment_statuses
+            ).select_related('order').order_by('-updated_at')
+        else:
+            payment_alert_qs = Payment.objects.filter(
+                status__in=open_payment_statuses
+            ).select_related('order').order_by('-created_at')
+
+        payment_alerts = list(payment_alert_qs[:8])
+        ctx['payment_alert_count'] = payment_alert_qs.count()
+        ctx['payment_alerts'] = payment_alerts
+
+        if attention_state == 'resolved':
+            escrow_alert_qs = EscrowTransaction.objects.filter(
+                status__in=[
+                    EscrowTransaction.Status.RELEASED,
+                    EscrowTransaction.Status.REFUNDED,
+                    EscrowTransaction.Status.CANCELLED,
+                ]
+            ).select_related('order', 'payment').order_by('-updated_at')
+        else:
+            escrow_alert_qs = EscrowTransaction.objects.exclude(
+                status__in=[
+                    EscrowTransaction.Status.RELEASED,
+                    EscrowTransaction.Status.REFUNDED,
+                    EscrowTransaction.Status.CANCELLED,
+                ]
+            ).select_related('order', 'payment').order_by('-created_at')
+
+        escrow_alerts = list(escrow_alert_qs[:8])
+        ctx['escrow_alert_count'] = escrow_alert_qs.count()
+        ctx['escrow_alerts'] = escrow_alerts
+
+        attention_queue = []
+        for payment in payment_alerts:
+            payment_age = timezone.now() - payment.created_at
+            age_display = 'just now'
+            if payment_age.days:
+                age_display = f"{payment_age.days}d ago"
+            elif payment_age.seconds >= 3600:
+                age_display = f"{payment_age.seconds // 3600}h ago"
+            elif payment_age.seconds >= 60:
+                age_display = f"{payment_age.seconds // 60}m ago"
+
+            attention_queue.append({
+                'kind': 'payment',
+                'payment_id': str(payment.id),
+                'title': f"Order {payment.order.order_number}",
+                'detail': f"{payment.get_status_display()} — {payment.method.upper()} payment",
+                'priority': 'high' if payment.status == Payment.Status.FAILED else 'medium',
+                'action_url': reverse('orders:order_detail', kwargs={'order_number': payment.order.order_number}),
+                'action_label': 'Open Order',
+                'review_url': f"{reverse('accounts:admin_dashboard')}?alert_state={attention_state}&reviewed=payment:{payment.id}",
+                'age_display': age_display,
+                'state': 'resolved' if payment.status in resolved_payment_statuses else 'open',
+            })
+
+        for escrow in escrow_alerts:
+            escrow_age = timezone.now() - escrow.created_at
+            age_display = 'just now'
+            if escrow_age.days:
+                age_display = f"{escrow_age.days}d ago"
+            elif escrow_age.seconds >= 3600:
+                age_display = f"{escrow_age.seconds // 3600}h ago"
+            elif escrow_age.seconds >= 60:
+                age_display = f"{escrow_age.seconds // 60}m ago"
+
+            attention_queue.append({
+                'kind': 'escrow',
+                'escrow_id': str(escrow.id),
+                'title': f"Order {escrow.order.order_number}",
+                'detail': f"Escrow {escrow.get_status_display()}",
+                'priority': 'high' if escrow.status in {EscrowTransaction.Status.DISPUTED, EscrowTransaction.Status.SHIPPED} else 'medium',
+                'action_url': reverse('escrow:status', kwargs={'escrow_id': escrow.id}),
+                'action_label': 'Review Escrow',
+                'release_url': reverse('escrow:release', kwargs={'escrow_id': escrow.id}),
+                'review_url': f"{reverse('accounts:admin_dashboard')}?alert_state={attention_state}&reviewed=escrow:{escrow.id}",
+                'age_display': age_display,
+                'state': 'resolved' if escrow.status in {EscrowTransaction.Status.RELEASED, EscrowTransaction.Status.REFUNDED, EscrowTransaction.Status.CANCELLED} else 'open',
+            })
+
+        if attention_filter in {'payment', 'escrow'}:
+            attention_queue = [item for item in attention_queue if item['kind'] == attention_filter]
+
+        reviewed_queue = []
+        for item in attention_queue:
+            key = f"{item['kind']}:{item.get('payment_id') or item.get('escrow_id')}"
+            if key in reviewed_alerts:
+                continue
+
+            if attention_state == 'resolved':
+                if item['state'] == 'resolved':
+                    reviewed_queue.append(item)
+            else:
+                if item['state'] == 'open':
+                    reviewed_queue.append(item)
+
+        attention_queue = reviewed_queue
+        attention_queue.sort(key=lambda item: (0 if item['priority'] == 'high' else 1, item['title']))
+        ctx['attention_queue'] = attention_queue
 
         # Low stock count
         ctx['low_stock_count'] = Stock.objects.filter(quantity__lte=F('low_stock_threshold')).count()
@@ -438,7 +581,6 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
         ctx['top_selling'] = list(top)
 
         # Revenue last 7 days (simple aggregation)
-        from django.utils import timezone
         from datetime import timedelta
         from support.models import SupportMessage, SupportTicket
 
@@ -643,8 +785,8 @@ class DashboardView(TemplateView):
             context['total_orders'] = 0
 
         try:
-            from products.models import Wishlist
-            context['wishlist_count'] = Wishlist.objects.filter(user=user).count()
+            from products.models import WishlistItem
+            context['wishlist_count'] = WishlistItem.objects.filter(user=user).count()
         except Exception:
             context['wishlist_count'] = 0
 

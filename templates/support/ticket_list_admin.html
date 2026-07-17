@@ -1,4 +1,27 @@
 {% extends "base.html" %}
+{% block page_preloader %}
+<div id="site-preloader" class="site-preloader" aria-hidden="true">
+  <div class="grain"></div>
+  <div class="frame">
+    <div class="mark"></div>
+    <div class="rule top"></div>
+    <h1 class="wordmark" aria-label="LUXE WEARS">
+      <span class="word" data-word="LUXE"></span><span class="space"></span><span class="word accent" data-word="WEARS"></span>
+    </h1>
+    <div class="rule bottom"></div>
+    <p class="tagline">Fine Ready-to-Wear</p>
+    <div class="progress">
+      <div class="progress-track">
+        <div class="progress-fill" id="site-preloader-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span>Loading</span>
+        <span><span class="value" id="site-preloader-percent">00</span>%</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
 {% block title %}Support Queue — Luxe Men{% endblock %}
 
 {% block content %}

@@ -1,10 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.management import call_command
 from django.template.loader import render_to_string
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
+from core.context_processors import admin_permissions
+
+from escrow.models import EscrowTransaction
+from payments.models import Payment
 from support.models import SupportMessage, SupportTicket
 from .models import Administrator, Permission, Role
 from .views import AdminDashboardView, DashboardView, SupportHistoryView, build_public_url
@@ -18,6 +23,30 @@ class DashboardViewTests(TestCase):
             username='customer',
             password='secret123',
         )
+
+    def test_dashboard_wishlist_count_uses_wishlist_items_model(self):
+        from products.models import Product, Category, Brand, WishlistItem
+
+        category = Category.objects.create(name='Suits', slug='suits')
+        brand = Brand.objects.create(name='Test Brand', slug='test-brand')
+        product = Product.objects.create(
+            name='Test Product',
+            slug='test-product',
+            description='A test product',
+            category=category,
+            brand=brand,
+            base_price=1000,
+        )
+        WishlistItem.objects.create(user=self.user, product=product)
+
+        request = self.factory.get('/accounts/dashboard/')
+        request.user = self.user
+
+        view = DashboardView()
+        view.request = request
+        context = view.get_context_data()
+
+        self.assertEqual(context['wishlist_count'], 1)
 
     def test_dashboard_includes_address_summary_context(self):
         request = self.factory.get('/accounts/dashboard/')
@@ -132,6 +161,277 @@ class AdminDashboardAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.startswith('/accounts/login/'))
+
+    def test_staff_users_without_admin_profile_still_get_sidebar_permissions(self):
+        staff_user = get_user_model().objects.create_user(
+            email='staff-no-profile@example.com',
+            username='staff-no-profile',
+            password='secret123',
+            is_staff=True,
+        )
+
+        request = RequestFactory().get(reverse('accounts:admin_dashboard'))
+        request.user = staff_user
+
+        context = admin_permissions(request)
+
+        self.assertIn('access_admin_dashboard', context['user_admin_permissions'])
+        self.assertIn('access_support_queue', context['user_admin_permissions'])
+        self.assertIn('access_audit_log', context['user_admin_permissions'])
+        self.assertIn('access_settings', context['user_admin_permissions'])
+        self.assertNotIn('access_orders', context['user_admin_permissions'])
+        self.assertNotIn('access_products', context['user_admin_permissions'])
+
+
+class AdminDashboardMetricsTests(TestCase):
+    def test_dashboard_exposes_order_status_breakdown_and_alert_counts(self):
+        from orders.models import Order
+
+        user = get_user_model().objects.create_user(
+            email='ops@example.com',
+            username='ops-admin',
+            password='secret123',
+        )
+
+        pending_order = Order.objects.create(
+            order_number='LM00001',
+            user=user,
+            subtotal=1000,
+            shipping_cost=0,
+            discount_amount=0,
+            total=1000,
+            shipping_name='Ops Admin',
+            shipping_phone='0700000000',
+            shipping_email='ops@example.com',
+            shipping_address='Nairobi',
+            shipping_city='Nairobi',
+            shipping_country='Kenya',
+            status=Order.Status.PENDING,
+            payment_status=Order.PaymentStatus.UNPAID,
+        )
+        paid_order = Order.objects.create(
+            order_number='LM00002',
+            user=user,
+            subtotal=2000,
+            shipping_cost=0,
+            discount_amount=0,
+            total=2000,
+            shipping_name='Ops Admin',
+            shipping_phone='0700000000',
+            shipping_email='ops@example.com',
+            shipping_address='Nairobi',
+            shipping_city='Nairobi',
+            shipping_country='Kenya',
+            status=Order.Status.PAID,
+            payment_status=Order.PaymentStatus.PAID,
+        )
+
+        Payment.objects.create(
+            order=pending_order,
+            method=Payment.Method.MPESA,
+            status=Payment.Status.FAILED,
+            amount=1000,
+            currency='KES',
+            reference='PAY-FAILED',
+            description='Failed payment alert',
+        )
+
+        failed_payment = Payment.objects.create(
+            order=paid_order,
+            method=Payment.Method.CARD,
+            status=Payment.Status.PROCESSING,
+            amount=2000,
+            currency='KES',
+            reference='PAY-PENDING',
+            description='Processing payment alert',
+        )
+
+        EscrowTransaction.objects.create(
+            order=paid_order,
+            payment=failed_payment,
+            buyer=user,
+            amount=2000,
+            currency='KES',
+            status=EscrowTransaction.Status.SHIPPED,
+        )
+
+        request = RequestFactory().get('/accounts/admin/dashboard/')
+        view = AdminDashboardView()
+        view.request = request
+        context = view.get_context_data()
+
+        self.assertEqual(context['orders_by_status']['pending'], 1)
+        self.assertEqual(context['orders_by_status']['paid'], 1)
+        self.assertEqual(context['payment_alert_count'], 2)
+        self.assertEqual(context['escrow_alert_count'], 1)
+        self.assertEqual(len(context['payment_alerts']), 2)
+        self.assertEqual(len(context['escrow_alerts']), 1)
+        self.assertIn('attention_queue', context)
+        self.assertGreaterEqual(len(context['attention_queue']), 2)
+        self.assertTrue(all('action_url' in item for item in context['attention_queue']))
+        self.assertTrue(all('age_display' in item for item in context['attention_queue']))
+        self.assertTrue(any(item['kind'] == 'escrow' and item.get('release_url') for item in context['attention_queue']))
+        self.assertEqual(context['attention_queue'][0]['kind'], 'payment')
+
+    def test_dashboard_attention_queue_can_be_filtered_by_alert_type(self):
+        from orders.models import Order
+
+        user = get_user_model().objects.create_user(
+            email='ops-filter@example.com',
+            username='ops-filter',
+            password='secret123',
+        )
+
+        order = Order.objects.create(
+            order_number='LM00003',
+            user=user,
+            subtotal=1500,
+            shipping_cost=0,
+            discount_amount=0,
+            total=1500,
+            shipping_name='Ops Admin',
+            shipping_phone='0700000000',
+            shipping_email='ops-filter@example.com',
+            shipping_address='Nairobi',
+            shipping_city='Nairobi',
+            shipping_country='Kenya',
+            status=Order.Status.PENDING,
+            payment_status=Order.PaymentStatus.UNPAID,
+        )
+
+        payment = Payment.objects.create(
+            order=order,
+            method=Payment.Method.MPESA,
+            status=Payment.Status.FAILED,
+            amount=1500,
+            currency='KES',
+            reference='PAY-FILTER',
+            description='Filtered payment alert',
+        )
+
+        EscrowTransaction.objects.create(
+            order=order,
+            payment=payment,
+            buyer=user,
+            amount=1500,
+            currency='KES',
+            status=EscrowTransaction.Status.SHIPPED,
+        )
+
+        request = RequestFactory().get('/accounts/admin/dashboard/?alert_type=payment')
+        view = AdminDashboardView()
+        view.request = request
+        context = view.get_context_data()
+
+        self.assertEqual(context['attention_filter'], 'payment')
+        self.assertEqual(context['payment_alert_count'], 1)
+        self.assertTrue(all(item['kind'] == 'payment' for item in context['attention_queue']))
+
+    def test_dashboard_attention_queue_exposes_open_and_resolved_states(self):
+        from orders.models import Order
+
+        user = get_user_model().objects.create_user(
+            email='ops-review@example.com',
+            username='ops-review',
+            password='secret123',
+        )
+
+        order = Order.objects.create(
+            order_number='LM00004',
+            user=user,
+            subtotal=1800,
+            shipping_cost=0,
+            discount_amount=0,
+            total=1800,
+            shipping_name='Ops Admin',
+            shipping_phone='0700000000',
+            shipping_email='ops-review@example.com',
+            shipping_address='Nairobi',
+            shipping_city='Nairobi',
+            shipping_country='Kenya',
+            status=Order.Status.COMPLETED,
+            payment_status=Order.PaymentStatus.PAID,
+        )
+
+        payment = Payment.objects.create(
+            order=order,
+            method=Payment.Method.CARD,
+            status=Payment.Status.COMPLETED,
+            amount=1800,
+            currency='KES',
+            reference='PAY-RESOLVED',
+            description='Resolved payment alert',
+        )
+
+        escrow = EscrowTransaction.objects.get(payment=payment)
+        escrow.status = EscrowTransaction.Status.RELEASED
+        escrow.save(update_fields=['status'])
+
+        request = RequestFactory().get('/accounts/admin/dashboard/?alert_state=resolved')
+        view = AdminDashboardView()
+        view.request = request
+        context = view.get_context_data()
+
+        self.assertEqual(context['attention_state'], 'resolved')
+        self.assertTrue(all(item['state'] == 'resolved' for item in context['attention_queue']))
+
+    def test_dashboard_attention_queue_uses_session_reviewed_state(self):
+        from orders.models import Order
+
+        user = get_user_model().objects.create_user(
+            email='ops-reviewed@example.com',
+            username='ops-reviewed',
+            password='secret123',
+        )
+
+        order = Order.objects.create(
+            order_number='LM00005',
+            user=user,
+            subtotal=2200,
+            shipping_cost=0,
+            discount_amount=0,
+            total=2200,
+            shipping_name='Ops Admin',
+            shipping_phone='0700000000',
+            shipping_email='ops-reviewed@example.com',
+            shipping_address='Nairobi',
+            shipping_city='Nairobi',
+            shipping_country='Kenya',
+            status=Order.Status.PENDING,
+            payment_status=Order.PaymentStatus.UNPAID,
+        )
+
+        payment = Payment.objects.create(
+            order=order,
+            method=Payment.Method.MPESA,
+            status=Payment.Status.PENDING,
+            amount=2200,
+            currency='KES',
+            reference='PAY-REVIEWED',
+            description='Open payment alert',
+        )
+
+        EscrowTransaction.objects.create(
+            order=order,
+            payment=payment,
+            buyer=user,
+            amount=2200,
+            currency='KES',
+            status=EscrowTransaction.Status.FUNDED,
+        )
+
+        request = RequestFactory().get('/accounts/admin/dashboard/')
+        session_middleware = SessionMiddleware(lambda req: None)
+        session_middleware.process_request(request)
+        request.session['reviewed_dashboard_alerts'] = [f'payment:{payment.id}']
+        request.session.save()
+
+        view = AdminDashboardView()
+        view.request = request
+        context = view.get_context_data()
+
+        self.assertEqual(context['reviewed_alert_count'], 1)
+        self.assertTrue(all(item['kind'] == 'escrow' for item in context['attention_queue']))
 
 
 class AdminSidebarTemplateTests(TestCase):
