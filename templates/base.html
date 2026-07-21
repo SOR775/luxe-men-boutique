@@ -20,7 +20,7 @@
     <link href="{% static 'css/output.css' %}" rel="stylesheet">
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-luxe-light dark:bg-luxe-dark text-gray-900 dark:text-gray-100 font-sans antialiased selection:bg-luxe-gold selection:text-white flex flex-col min-h-screen transition-colors duration-300" x-data="{ darkMode: {{ request.session.dark_mode|default:True|yesno:'true,false' }}, mobileMenuOpen: false }" :class="{ 'dark': darkMode, 'overflow-hidden': mobileMenuOpen }">
+<body class="bg-luxe-light dark:bg-gradient-to-br dark:from-luxe-darkStart dark:to-luxe-dark dark:bg-fixed text-gray-900 dark:text-gray-100 font-sans antialiased selection:bg-luxe-gold selection:text-luxe-black flex flex-col min-h-screen transition-colors duration-300" x-data="{ darkMode: {{ request.session.dark_mode|default:True|yesno:'true,false' }}, mobileMenuOpen: false }" :class="{ 'dark': darkMode, 'overflow-hidden': mobileMenuOpen }">
 
     <!-- Skip link for keyboard / screen-reader users -->
     <a href="#main-content" class="skip-link bg-luxe-gold text-white text-sm font-semibold px-4 py-2 rounded-md shadow-lg">
@@ -87,7 +87,7 @@
                             </div>
                             <div id="notif-list" class="max-h-64 overflow-auto divide-y divide-gray-50 dark:divide-white/[0.04]"></div>
                             <div class="px-4 py-2.5 border-t border-gray-100 dark:border-white/[0.06] text-center">
-                                <a href="{% url 'notifications:list' %}" class="text-[0.7rem] tracking-wider uppercase font-semibold text-luxe-gold hover:text-yellow-500 transition-colors duration-200">View all</a>
+                                <a href="{% url 'notifications:list' %}" class="text-[0.7rem] tracking-wider uppercase font-semibold text-luxe-gold hover:text-luxe-goldMuted transition-colors duration-200">View all</a>
                             </div>
                         </div>
                     </div>
@@ -182,12 +182,16 @@
         </div>
     </div>
 
+    {% if show_returning_customer_banner or show_recently_viewed_banner %}
+        {# Banners already provide their own top clearance for the fixed nav, so <main> skips its top padding below to avoid stacking gaps. #}
+    {% endif %}
+
     {% if show_returning_customer_banner %}
     <div class="mx-4 sm:mx-6 lg:mx-8 mt-[4.5rem] sm:mt-24">
-        <div class="banner-shimmer rounded-xl border border-luxe-gold/15 bg-gradient-to-r from-luxe-gold/[0.07] via-white to-amber-50/80 px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200 dark:border-amber-700/20 dark:from-amber-900/15 dark:via-luxe-gray dark:to-amber-950/10">
+        <div class="banner-shimmer rounded-xl border border-luxe-gold/15 bg-gradient-to-r from-luxe-gold/[0.07] via-white to-emerald-50/80 px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200 dark:border-emerald-700/20 dark:from-emerald-900/15 dark:via-luxe-gray dark:to-emerald-950/10">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span class="font-light">{{ returning_customer_message }}</span>
-                <a href="{% url 'accounts:dashboard' %}" class="font-semibold text-luxe-gold hover:text-yellow-500 shrink-0 transition-colors duration-200">Visit your account &rarr;</a>
+                <a href="{% url 'accounts:dashboard' %}" class="font-semibold text-luxe-gold hover:text-luxe-goldMuted shrink-0 transition-colors duration-200">Visit your account &rarr;</a>
             </div>
         </div>
     </div>
@@ -198,14 +202,15 @@
         <div class="rounded-xl border border-gray-200/60 dark:border-white/[0.06] bg-white/80 dark:bg-luxe-gray/80 backdrop-blur-sm px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span class="font-light">Pick up where you left off with your recently viewed pieces.</span>
-                <a href="{% url 'products:shop' %}" class="font-semibold text-luxe-gold hover:text-yellow-500 shrink-0 transition-colors duration-200">Continue browsing &rarr;</a>
+                <a href="{% url 'products:shop' %}" class="font-semibold text-luxe-gold hover:text-luxe-goldMuted shrink-0 transition-colors duration-200">Continue browsing &rarr;</a>
             </div>
         </div>
     </div>
     {% endif %}
 
     <!-- Main Content -->
-    <main id="main-content" class="flex-grow pt-20 sm:pt-24 pb-24 md:pb-0">
+    {# FIX: when a banner is shown above, it already clears the fixed nav (mt-[4.5rem] sm:mt-24), so <main> skips its own top padding to avoid an extra stacked gap on mobile. #}
+    <main id="main-content" class="flex-grow {% if not show_returning_customer_banner and not show_recently_viewed_banner %}pt-20 sm:pt-24{% endif %} pb-24 md:pb-0">
         {% if messages %}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
             <div class="space-y-2">
@@ -252,12 +257,14 @@
             <div class="col-span-1 sm:col-span-2 md:col-span-1">
                 <h4 class="text-gray-900 dark:text-white font-semibold uppercase tracking-[0.15em] mb-5 text-[0.7rem]">Newsletter</h4>
                 <p class="text-[0.82rem] mb-4 text-gray-400 dark:text-gray-500 font-light">Subscribe for exclusive offers and style updates.</p>
+                {# FIX: xs: breakpoint didn't exist in tailwind.config.js, so this stacked on ALL mobile widths. Added `screens: { xs: '480px' }` to config — see updated tailwind.config.js. #}
                 <form method="post" action="{% url 'marketing:newsletter_subscribe' %}" class="flex flex-col xs:flex-row gap-2 xs:gap-0">
                     {% csrf_token %}
                     <label for="newsletter-email" class="sr-only">Email address</label>
                     <input id="newsletter-email" name="email" type="email" placeholder="Your email" required
                            class="newsletter-input w-full bg-white dark:bg-luxe-dark border border-gray-200 dark:border-white/[0.08] px-4 py-2.5 focus:outline-none focus:border-luxe-gold text-sm rounded-lg xs:rounded-l-lg xs:rounded-r-none text-gray-700 dark:text-gray-300 placeholder:text-gray-300 dark:placeholder:text-gray-600 transition-all duration-200">
-                    <button type="submit" class="bg-luxe-gold hover:bg-yellow-500 text-white px-5 py-2.5 text-[0.7rem] uppercase tracking-[0.15em] font-semibold transition-all duration-200 rounded-lg xs:rounded-l-none xs:rounded-r-md whitespace-nowrap shadow-sm hover:shadow-md hover:shadow-luxe-gold/10">Join</button>
+                    {# FIX: accent color is now bright neon lime (was forest green) — white text on lime has poor contrast, so this uses dark text to match the reference design's dark-text-on-lime buttons/badges. #}
+                    <button type="submit" class="bg-luxe-gold hover:bg-luxe-goldMuted text-luxe-black px-5 py-2.5 text-[0.7rem] uppercase tracking-[0.15em] font-semibold transition-all duration-200 rounded-lg xs:rounded-l-none xs:rounded-r-md whitespace-nowrap shadow-sm hover:shadow-md hover:shadow-luxe-gold/10">Join</button>
                 </form>
             </div>
         </div>
@@ -366,6 +373,11 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.5.0/dist/cdn.min.js"></script>
     <script>
         function guideUserToPrimaryFormField() {
+            // FIX: previously auto-focused the first required field on EVERY page load,
+            // which pops the on-screen keyboard immediately on mobile and covers content
+            // before the user has scrolled or read anything. Skip entirely on touch devices.
+            if (window.matchMedia('(pointer: coarse)').matches) return;
+
             const mainContent = document.querySelector('main');
             if (!mainContent) return;
 
@@ -431,7 +443,35 @@
             }
 
             guideUserToPrimaryFormField();
+            scrollToRelevantSection();
         });
+
+        // FIX: nav tabs like "New Arrivals", "Collections", etc. all point to the
+        // same shop view with different query params (?sort=, ?featured=, ?category=).
+        // The page always loads at the top, so the user has to scroll down manually
+        // to see the filtered/sorted results actually changed. This detects those
+        // cases (plus an explicit #anchor in the URL) and smooth-scrolls straight to
+        // the results, offset so they don't land hidden under the fixed nav bar.
+        function scrollToRelevantSection() {
+            const params = new URLSearchParams(window.location.search);
+            const hasFilterIntent = ['sort', 'featured', 'category', 'q'].some(key => params.has(key));
+            const hash = window.location.hash ? document.querySelector(window.location.hash) : null;
+
+            // Explicit #anchor in the URL always wins.
+            const target = hash || (hasFilterIntent ? document.querySelector('[data-scroll-target]') : null);
+            if (!target) return;
+
+            // Don't fight a restored scroll position (e.g. back button).
+            if (sessionStorage.getItem(`luxe-scroll:${window.location.pathname}`)) return;
+
+            const nav = document.querySelector('nav.fixed');
+            const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+            const top = target.getBoundingClientRect().top + window.scrollY - navHeight - 12;
+
+            requestAnimationFrame(() => {
+                window.scrollTo({ top, behavior: 'smooth' });
+            });
+        }
 
         function showToast(message, type = 'info', title = '') {
             const container = document.getElementById('toast-container');

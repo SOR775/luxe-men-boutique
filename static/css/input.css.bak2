@@ -9,13 +9,13 @@
 
 :root {
     /* Color palette */
-    --color-primary: #8ce93b;
+    --color-primary: #1f5d3a;
     --color-primary-soft: rgba(200,162,76,0.16);
     --color-secondary: #0f1b13;
     --color-secondary-soft: #5c7a68;
     --color-secondary-light: #f0f7f1;
     --color-surface: #f0f7f1;
-    --color-surface-dark: #070d08;
+    --color-surface-dark: #0a140d;
     --color-success: #22C55E;
     --color-warning: #F59E0B;
     --color-danger: #EF4444;
@@ -148,9 +148,9 @@ p, li, label, input, textarea, select, button {
 
 :root {
     --color-luxe-light: #f0f7f1;
-    --color-luxe-dark: #070d08;
+    --color-luxe-dark: #0a140d;
     --color-luxe-gray: #16241b;
-    --color-luxe-gold: #8ce93b;
+    --color-luxe-gold: #1f5d3a;
 }
 
 .bg-luxe-light { background-color: var(--color-luxe-light) !important; }
@@ -189,7 +189,7 @@ p, li, label, input, textarea, select, button {
 }
 .bottom-nav-item:hover,
 .bottom-nav-item.active {
-    color: #a6f24d;
+    color: #2f7c4e;
 }
 
 .smooth-fade {
@@ -444,7 +444,7 @@ p, li, label, input, textarea, select, button {
     left: 50%;
     width: 0;
     height: 1px;
-    background: #a6f24d;
+    background: #2f7c4e;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .nav-link:hover::after {
@@ -501,7 +501,7 @@ html {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible {
-    outline: 2px solid #a6f24d;
+    outline: 2px solid #2f7c4e;
     outline-offset: 2px;
 }
 
@@ -569,7 +569,7 @@ input:focus-visible {
     transform: translateX(-50%) scaleX(0);
     width: 24px;
     height: 2px;
-    background: #a6f24d;
+    background: #2f7c4e;
     border-radius: 0 0 2px 2px;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -591,7 +591,7 @@ input:focus-visible {
     left: 0;
     width: 0;
     height: 1px;
-    background: #a6f24d;
+    background: #2f7c4e;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .footer-link:hover::after {
@@ -681,7 +681,7 @@ input:focus-visible {
     width: 5px;
     height: 5px;
     border-radius: 9999px;
-    background: #a6f24d;
+    background: #2f7c4e;
     margin-bottom: 28px;
     opacity: 0;
     transform: scale(0);
@@ -696,7 +696,7 @@ input:focus-visible {
 .site-preloader .rule {
     width: 150px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, #a6f24d 50%, transparent);
+    background: linear-gradient(90deg, transparent, #2f7c4e 50%, transparent);
     transform: scaleX(0);
     transform-origin: center;
     animation: preloaderGrowLine 800ms 260ms cubic-bezier(.65,0,.15,1) forwards;
@@ -732,7 +732,7 @@ input:focus-visible {
 @keyframes preloaderRise {
     to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-.site-preloader .accent { color: #a6f24d; }
+.site-preloader .accent { color: #2f7c4e; }
 .site-preloader .tagline {
     margin-top: 12px;
     font-family: 'Inter', sans-serif;
@@ -767,7 +767,7 @@ input:focus-visible {
     top: 0;
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #4a6b55, #a6f24d);
+    background: linear-gradient(90deg, #4a6b55, #2f7c4e);
 }
 .site-preloader .progress-meta {
     display: flex;
@@ -777,7 +777,7 @@ input:focus-visible {
     letter-spacing: 0.28em;
     color: rgba(243,234,217,0.4);
 }
-.site-preloader .progress-meta .value { color: #a6f24d; font-variant-numeric: tabular-nums; }
+.site-preloader .progress-meta .value { color: #2f7c4e; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) {
     .site-preloader .mark,
     .site-preloader .rule,
@@ -793,14 +793,3 @@ input:focus-visible {
     }
 }
 
-
-
-/* RETHEME v2: dark green gradient background + neon lime accent,
-   matching the reference mobile-app mockup design. */
-:root {
-  --color-luxe-dark-start: #173c22;
-}
-.dark body {
-  background: linear-gradient(135deg, var(--color-luxe-dark-start), var(--color-luxe-dark));
-  background-attachment: fixed;
-}

@@ -9,17 +9,17 @@
 
 :root {
     /* Color palette */
-    --color-primary: #8ce93b;
+    --color-primary: #C8A24C;
     --color-primary-soft: rgba(200,162,76,0.16);
-    --color-secondary: #0f1b13;
-    --color-secondary-soft: #5c7a68;
-    --color-secondary-light: #f0f7f1;
-    --color-surface: #f0f7f1;
-    --color-surface-dark: #070d08;
+    --color-secondary: #111827;
+    --color-secondary-soft: #6B7280;
+    --color-secondary-light: #F8FAFC;
+    --color-surface: #F8FAFC;
+    --color-surface-dark: #050505;
     --color-success: #22C55E;
     --color-warning: #F59E0B;
     --color-danger: #EF4444;
-    --color-muted: #8ba396;
+    --color-muted: #9CA3AF;
     --color-border: rgba(15, 23, 42, 0.08);
     --color-border-strong: rgba(255,255,255,0.08);
 
@@ -147,10 +147,10 @@ p, li, label, input, textarea, select, button {
 }
 
 :root {
-    --color-luxe-light: #f0f7f1;
-    --color-luxe-dark: #070d08;
-    --color-luxe-gray: #16241b;
-    --color-luxe-gold: #8ce93b;
+    --color-luxe-light: #F8FAFC;
+    --color-luxe-dark: #050505;
+    --color-luxe-gray: #1F2937;
+    --color-luxe-gold: #C8A24C;
 }
 
 .bg-luxe-light { background-color: var(--color-luxe-light) !important; }
@@ -189,7 +189,7 @@ p, li, label, input, textarea, select, button {
 }
 .bottom-nav-item:hover,
 .bottom-nav-item.active {
-    color: #a6f24d;
+    color: #D4AF37;
 }
 
 .smooth-fade {
@@ -444,7 +444,7 @@ p, li, label, input, textarea, select, button {
     left: 50%;
     width: 0;
     height: 1px;
-    background: #a6f24d;
+    background: #D4AF37;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .nav-link:hover::after {
@@ -501,7 +501,7 @@ html {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible {
-    outline: 2px solid #a6f24d;
+    outline: 2px solid #D4AF37;
     outline-offset: 2px;
 }
 
@@ -517,7 +517,7 @@ input:focus-visible {
     padding: 0.8rem 1rem;
     border-radius: 9999px;
     background: rgba(255,255,255,0.95);
-    color: #0f1b13;
+    color: #111827;
     border: 1px solid rgba(15,15,15,0.08);
     box-shadow: 0 18px 45px rgba(15,15,15,0.08);
     transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
@@ -531,7 +531,7 @@ input:focus-visible {
 }
 .browser-back-btn.dark {
     background: rgba(15,15,15,0.96);
-    color: #f0f7f1;
+    color: #f8fafc;
     border-color: rgba(255,255,255,0.1);
 }
 
@@ -569,7 +569,7 @@ input:focus-visible {
     transform: translateX(-50%) scaleX(0);
     width: 24px;
     height: 2px;
-    background: #a6f24d;
+    background: #D4AF37;
     border-radius: 0 0 2px 2px;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -591,7 +591,7 @@ input:focus-visible {
     left: 0;
     width: 0;
     height: 1px;
-    background: #a6f24d;
+    background: #D4AF37;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .footer-link:hover::after {
@@ -642,10 +642,10 @@ input:focus-visible {
     pointer-events: none;
     transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    background: #f0f7f1;
+    background: #FAFAFA;
 }
 .dark .site-preloader {
-    background: #10231a;
+    background: #0F0F0F;
 }
 .site-preloader.exit {
     opacity: 0;
@@ -681,7 +681,7 @@ input:focus-visible {
     width: 5px;
     height: 5px;
     border-radius: 9999px;
-    background: #a6f24d;
+    background: #D4AF37;
     margin-bottom: 28px;
     opacity: 0;
     transform: scale(0);
@@ -696,7 +696,7 @@ input:focus-visible {
 .site-preloader .rule {
     width: 150px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, #a6f24d 50%, transparent);
+    background: linear-gradient(90deg, transparent, #D4AF37 50%, transparent);
     transform: scaleX(0);
     transform-origin: center;
     animation: preloaderGrowLine 800ms 260ms cubic-bezier(.65,0,.15,1) forwards;
@@ -732,7 +732,7 @@ input:focus-visible {
 @keyframes preloaderRise {
     to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-.site-preloader .accent { color: #a6f24d; }
+.site-preloader .accent { color: #D4AF37; }
 .site-preloader .tagline {
     margin-top: 12px;
     font-family: 'Inter', sans-serif;
@@ -740,7 +740,7 @@ input:focus-visible {
     font-size: 0.72rem;
     letter-spacing: 0.42em;
     text-transform: uppercase;
-    color: #4a6b55;
+    color: #8a7142;
     opacity: 0;
     animation: preloaderFadeUp 700ms 1650ms ease forwards;
 }
@@ -767,7 +767,7 @@ input:focus-visible {
     top: 0;
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #4a6b55, #a6f24d);
+    background: linear-gradient(90deg, #8a7142, #D4AF37);
 }
 .site-preloader .progress-meta {
     display: flex;
@@ -777,7 +777,7 @@ input:focus-visible {
     letter-spacing: 0.28em;
     color: rgba(243,234,217,0.4);
 }
-.site-preloader .progress-meta .value { color: #a6f24d; font-variant-numeric: tabular-nums; }
+.site-preloader .progress-meta .value { color: #D4AF37; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) {
     .site-preloader .mark,
     .site-preloader .rule,
@@ -791,16 +791,4 @@ input:focus-visible {
         filter: none !important;
         letter-spacing: 0.06em !important;
     }
-}
-
-
-
-/* RETHEME v2: dark green gradient background + neon lime accent,
-   matching the reference mobile-app mockup design. */
-:root {
-  --color-luxe-dark-start: #173c22;
-}
-.dark body {
-  background: linear-gradient(135deg, var(--color-luxe-dark-start), var(--color-luxe-dark));
-  background-attachment: fixed;
 }
