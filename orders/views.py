@@ -845,9 +845,27 @@ class OrderReceiptView(LoginRequiredMixin, View):
             order_queryset = order_queryset.filter(user=request.user)
 
         order = get_object_or_404(order_queryset, order_number=order_number)
+        payments = list(order.payments.select_related('order').all())
+        payment = payments[0] if payments else None
+        payment_reference = order.order_number
+        payment_method_display = 'Pending confirmation'
+
+        if payment:
+            payment_method_display = payment.get_method_display()
+            if payment.reference:
+                payment_reference = payment.reference
+            elif payment.mpesa_transactions.exists():
+                receipt_txn = payment.mpesa_transactions.order_by('-created_at').first()
+                if receipt_txn and receipt_txn.mpesa_receipt_number:
+                    payment_reference = receipt_txn.mpesa_receipt_number
+
         return render(request, self.template_name, {
             'order': order,
             'items': order.items.all(),
+            'payment': payment,
+            'payment_reference': payment_reference,
+            'payment_method_display': payment_method_display,
+            'barcode_value': order.order_number,
         })
 
 

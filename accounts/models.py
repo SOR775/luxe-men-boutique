@@ -422,6 +422,8 @@ class AuditLog(models.Model):
         ('password_reset', 'Password Reset'),
         ('role_change', 'Role Change'),
         ('permission_change', 'Permission Change'),
+        ('user_suspended', 'User Suspended'),
+        ('user_unsuspended', 'User Unsuspended'),
         ('system', 'System'),
     ]
 

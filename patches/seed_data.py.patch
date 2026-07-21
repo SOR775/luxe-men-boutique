@@ -1,0 +1,60 @@
+diff --git a/seed_data.py b/seed_data.py
+index 72e6611..338046b 100644
+--- a/seed_data.py
++++ b/seed_data.py
+@@ -18,6 +18,7 @@ Requires:
+ import os
+ import uuid
+ import hashlib
++import secrets
+ import django
+ import requests
+ from decimal import Decimal
+@@ -111,12 +112,24 @@ def seed():
+     # Users
+     # -----------------------------------------------------------------
+     print("Creating superuser...")
+-    if not User.objects.filter(email='admin@luxemen.com').exists():
+-        User.objects.create_superuser(
+-            email='admin@luxemen.com', username='admin', password='admin123',
+-            first_name='Admin', last_name='User'
+-        )
+-        print("  Superuser created: admin@luxemen.com / admin123")
++    admin_email = os.environ.get('SEED_ADMIN_EMAIL', 'admin@luxemen.com')
++    admin_password = os.environ.get('SEED_ADMIN_PASSWORD')
++    if not User.objects.filter(email=admin_email).exists():
++        if not admin_password:
++            if os.environ.get('DJANGO_SETTINGS_MODULE', '').endswith('.prod'):
++                # Never auto-create an admin account in production without an
++                # explicit, operator-supplied password.
++                print("  [skip] SEED_ADMIN_PASSWORD not set — skipping superuser creation in production.")
++                admin_password = None
++            else:
++                admin_password = secrets.token_urlsafe(12)
++                print(f"  [dev only] Generated random admin password: {admin_password}")
++        if admin_password:
++            User.objects.create_superuser(
++                email=admin_email, username='admin', password=admin_password,
++                first_name='Admin', last_name='User'
++            )
++            print(f"  Superuser created: {admin_email} (password not logged)")
+ 
+     print("Creating sample customers...")
+     customers = []
+@@ -131,9 +144,14 @@ def seed():
+             defaults={'first_name': first, 'last_name': last, 'username': username},
+         )
+         if created:
+-            customer.set_password('customer123')
++            if os.environ.get('DJANGO_SETTINGS_MODULE', '').endswith('.prod'):
++                demo_password = secrets.token_urlsafe(12)
++                print(f"  Customer created: {email} (random password, not logged)")
++            else:
++                demo_password = 'customer123'
++                print(f"  Customer created: {email} / customer123 [dev only]")
++            customer.set_password(demo_password)
+             customer.save()
+-            print(f"  Customer created: {email} / customer123")
+         customers.append(customer)
+     primary_customer = customers[0]
+ 

@@ -90,7 +90,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.SecurityHeadersMiddleware',
     'core.middleware.ActivityLogMiddleware',
+    'core.middleware.StaffSessionTimeoutMiddleware',
 ]
+
+# Staff sessions get a much shorter sliding idle timeout than regular
+# customer sessions (which use SESSION_COOKIE_AGE below). 15 minutes by
+# default — override via env if that's too aggressive for your admins.
+STAFF_SESSION_TIMEOUT_SECONDS = env.int('STAFF_SESSION_TIMEOUT_SECONDS', default=900)
 
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'

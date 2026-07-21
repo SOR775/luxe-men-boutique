@@ -9,8 +9,16 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
       </svg>
     </div>
+    {% if order.payment_status == 'paid' %}
     <h1 class="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-3">Order Confirmed!</h1>
-    <p class="text-gray-500 dark:text-gray-400 mb-8">Thank you for your purchase. Your order has been placed and payment received.</p>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">Your order has been placed and payment has been confirmed. A receipt is ready for download.</p>
+    {% elif order.payment_status == 'partial' %}
+    <h1 class="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-3">Payment in Progress</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">Your order has been placed, and part of the balance has been received. Complete the remaining payment to finalize the order.</p>
+    {% else %}
+    <h1 class="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-3">Order Placed</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">Your order has been placed. Please complete the payment step to confirm the transaction.</p>
+    {% endif %}
 
     <!-- Order Card -->
     <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-sm p-6 mb-8 text-left">

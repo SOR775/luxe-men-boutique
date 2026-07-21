@@ -255,12 +255,27 @@ class LoginView(View):
             user.last_login_ip = get_client_ip(request)
             user.save(update_fields=['failed_login_attempts', 'locked_until', 'last_login_ip'])
 
+            # Staff accounts require a second factor before the session is established.
+            if user.is_staff:
+                code = ''.join(secrets.choice('0123456789') for _ in range(6))
+                expires_at = timezone.now() + timedelta(minutes=settings.EMAIL_LOGIN_CODE_EXPIRY_MINUTES)
+                EmailLoginCode.objects.create(
+                    user=user, email=user.email, code=code, expires_at=expires_at,
+                )
+                self._send_2fa_email(user, code)
+
+                request.session['pending_2fa_user_id'] = str(user.pk)
+                request.session['pending_2fa_remember_me'] = bool(form.cleaned_data.get('remember_me'))
+                request.session['pending_2fa_next'] = request.GET.get('next', '')
+                return redirect('accounts:staff_2fa_verify')
+
             # Handle remember-me
             if not form.cleaned_data.get('remember_me'):
                 request.session.set_expiry(0)  # Session expires on browser close
             else:
                 request.session.set_expiry(settings.SESSION_COOKIE_AGE)
 
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             log_login_event(user, request, LoginHistory.LoginStatus.SUCCESS)
 
@@ -293,6 +308,82 @@ class LoginView(View):
                 log_login_event(None, request, LoginHistory.LoginStatus.FAILED, email_attempted)
 
         return render(request, self.template_name, {'form': form})
+
+    @staticmethod
+    def _send_2fa_email(user, code):
+        subject = f'Your {settings.SITE_NAME} staff sign-in code'
+        html_message = render_to_string('accounts/emails/login_code.html', {
+            'user': user,
+            'code': code,
+            'expiry_minutes': settings.EMAIL_LOGIN_CODE_EXPIRY_MINUTES,
+            'site_name': settings.SITE_NAME,
+        })
+        send_mail(
+            subject=subject,
+            message=f'Your staff sign-in code is: {code}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+
+class StaffTwoFactorVerifyView(View):
+    """
+    Second step of staff login: the account/password has already been
+    confirmed in LoginView, and a one-time code was emailed. The Django
+    session is only established once this code is verified, so a stolen
+    password alone is never enough to reach the admin dashboard.
+    """
+    template_name = 'accounts/login_2fa_verify.html'
+
+    def _pending_user(self, request):
+        user_id = request.session.get('pending_2fa_user_id')
+        if not user_id:
+            return None
+        try:
+            return User.objects.get(pk=user_id, is_staff=True, is_active=True)
+        except (User.DoesNotExist, ValueError):
+            return None
+
+    def get(self, request):
+        if not self._pending_user(request):
+            return redirect('accounts:login')
+        return render(request, self.template_name, {})
+
+    def post(self, request):
+        user = self._pending_user(request)
+        if not user:
+            messages.error(request, 'Your sign-in attempt expired. Please log in again.')
+            return redirect('accounts:login')
+
+        code = request.POST.get('code', '').strip()
+        try:
+            login_code = EmailLoginCode.objects.get(user=user, code=code, is_used=False)
+        except EmailLoginCode.DoesNotExist:
+            messages.error(request, 'Invalid code. Please try again.')
+            return render(request, self.template_name, {})
+
+        if not login_code.is_valid():
+            messages.error(request, 'This code has expired. Please log in again to request a new one.')
+            return redirect('accounts:login')
+
+        login_code.mark_used()
+
+        remember_me = request.session.pop('pending_2fa_remember_me', False)
+        next_url = request.session.pop('pending_2fa_next', '') or 'core:home'
+        request.session.pop('pending_2fa_user_id', None)
+
+        if not remember_me:
+            request.session.set_expiry(0)
+        else:
+            request.session.set_expiry(settings.SESSION_COOKIE_AGE)
+
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        login(request, user)
+        log_login_event(user, request, LoginHistory.LoginStatus.SUCCESS)
+        messages.success(request, f'Welcome back, {user.get_short_name()}!')
+        return redirect(next_url)
 
 
 class EmailLoginCodeRequestView(View):
@@ -387,6 +478,7 @@ class EmailLoginCodeVerifyView(View):
                 return redirect('accounts:login')
 
             login_code.mark_used()
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             log_login_event(user, request, LoginHistory.LoginStatus.SUCCESS)
             messages.success(request, 'Signed in successfully.')

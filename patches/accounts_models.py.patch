@@ -1,0 +1,13 @@
+diff --git a/accounts/models.py b/accounts/models.py
+index 3a4fab3..ef48cb7 100644
+--- a/accounts/models.py
++++ b/accounts/models.py
+@@ -422,6 +422,8 @@ class AuditLog(models.Model):
+         ('password_reset', 'Password Reset'),
+         ('role_change', 'Role Change'),
+         ('permission_change', 'Permission Change'),
++        ('user_suspended', 'User Suspended'),
++        ('user_unsuspended', 'User Unsuspended'),
+         ('system', 'System'),
+     ]
+ 

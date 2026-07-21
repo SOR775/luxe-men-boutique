@@ -1,0 +1,52 @@
+diff --git a/templates/products/product_detail.html b/templates/products/product_detail.html
+index 19260a4..76e4333 100644
+--- a/templates/products/product_detail.html
++++ b/templates/products/product_detail.html
+@@ -89,9 +89,9 @@
+ 
+         <!-- Price -->
+         <div class="flex items-center flex-wrap gap-3 mb-6">
+-          <span class="text-2xl sm:text-3xl font-bold text-luxe-gold" x-text="'$' + finalPrice">${{ product.base_price }}</span>
++          <span class="text-2xl sm:text-3xl font-bold text-luxe-gold" x-text="'{{ CURRENCY_SYMBOL }} ' + finalPrice">{{ CURRENCY_SYMBOL }} {{ product.base_price }}</span>
+           {% if product.compare_at_price %}
+-          <span class="text-base sm:text-lg text-gray-400 line-through">${{ product.compare_at_price }}</span>
++          <span class="text-base sm:text-lg text-gray-400 line-through">{{ CURRENCY_SYMBOL }} {{ product.compare_at_price }}</span>
+           <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">SAVE {{ product.compare_at_price|subtract:product.base_price }}</span>
+           {% endif %}
+         </div>
+@@ -408,7 +408,7 @@
+           <h3 class="text-sm font-semibold text-gray-900 dark:text-white leading-snug hover:text-luxe-gold transition truncate">
+             <a href="{% url 'products:detail' item.slug %}">{{ item.name }}</a>
+           </h3>
+-          <p class="text-luxe-gold font-bold text-sm mt-1">${{ item.base_price }}</p>
++          <p class="text-luxe-gold font-bold text-sm mt-1">{{ CURRENCY_SYMBOL }} {{ item.base_price }}</p>
+         </div>
+         {% endfor %}
+       </div>
+@@ -440,7 +440,7 @@
+           <h3 class="text-sm font-semibold text-gray-900 dark:text-white leading-snug hover:text-luxe-gold transition truncate">
+             <a href="{% url 'products:detail' item.slug %}">{{ item.name }}</a>
+           </h3>
+-          <p class="text-luxe-gold font-bold text-sm mt-1">${{ item.base_price }}</p>
++          <p class="text-luxe-gold font-bold text-sm mt-1">{{ CURRENCY_SYMBOL }} {{ item.base_price }}</p>
+         </div>
+         {% endfor %}
+       </div>
+@@ -470,7 +470,7 @@
+           <h3 class="text-sm font-semibold text-gray-900 dark:text-white leading-snug hover:text-luxe-gold transition truncate">
+             <a href="{% url 'products:detail' b.slug %}">{{ b.name }}</a>
+           </h3>
+-          <p class="text-luxe-gold font-bold text-sm mt-0.5">KES {{ b.base_price }}</p>
++          <p class="text-luxe-gold font-bold text-sm mt-0.5">{{ CURRENCY_SYMBOL }} {{ b.base_price }}</p>
+         </div>
+         {% endfor %}
+       </div>
+@@ -510,7 +510,7 @@
+           <h3 class="text-sm font-semibold text-gray-900 dark:text-white leading-snug hover:text-luxe-gold transition truncate">
+             <a href="{% url 'products:detail' related.slug %}">{{ related.name }}</a>
+           </h3>
+-          <p class="text-luxe-gold font-bold text-sm mt-0.5">${{ related.base_price }}</p>
++          <p class="text-luxe-gold font-bold text-sm mt-0.5">{{ CURRENCY_SYMBOL }} {{ related.base_price }}</p>
+         </div>
+         {% endfor %}
+       </div>

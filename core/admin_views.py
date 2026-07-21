@@ -25,6 +25,10 @@ from accounts.models import User
 from core.admin_models import SystemSettings, ContentModerationQueue, UserSuspension
 from escrow.models import EscrowTransaction
 
+from accounts.models import User, AuditLog
+from accounts.views import get_client_ip
+from core.admin_models import SystemSettings, ContentModerationQueue, UserSuspension
+
 
 def staff_required(user):
     """Check if user is staff with a valid admin role profile."""
@@ -161,7 +165,16 @@ class AdminSuspendUserView(LoginRequiredMixin, View):
     
     def post(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
-        
+
+        # A staff member can never suspend someone with equal or higher
+        # privilege than themselves — otherwise a single compromised or
+        # rogue staff account with only 'access_user_management' could
+        # lock out super-admins or peer staff.
+        if user.is_staff and not request.user.is_super_admin:
+            raise PermissionDenied("You don't have permission to suspend a staff account.")
+        if user.pk == request.user.pk:
+            raise PermissionDenied("You can't suspend your own account.")
+
         suspension_type = request.POST.get('suspension_type', 'suspended')
         reason = request.POST.get('reason', '')
         days = request.POST.get('days')
@@ -186,10 +199,17 @@ class AdminSuspendUserView(LoginRequiredMixin, View):
         # Deactivate user account
         user.is_active = False
         user.save()
-        
+
+        AuditLog.objects.create(
+            actor=request.user,
+            target_user=user,
+            action='user_suspended',
+            message=f'{request.user.email} suspended {user.email} ({suspension_type})',
+            metadata={'suspension_type': suspension_type, 'reason': reason, 'suspended_until': str(suspended_until) if suspended_until else None},
+            ip_address=get_client_ip(request),
+        )
+
         return redirect('dashboard:user_management')
-
-
 class AdminUnsuspendUserView(LoginRequiredMixin, View):
     """Unsuspend a user."""
     
@@ -199,16 +219,23 @@ class AdminUnsuspendUserView(LoginRequiredMixin, View):
     
     def post(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
-        
+
         if hasattr(user, 'suspension'):
             user.suspension.is_active = False
             user.suspension.save()
-        
+
         user.is_active = True
         user.save()
-        
-        return redirect('dashboard:user_management')
 
+        AuditLog.objects.create(
+            actor=request.user,
+            target_user=user,
+            action='user_unsuspended',
+            message=f'{request.user.email} lifted suspension for {user.email}',
+            ip_address=get_client_ip(request),
+        )
+
+        return redirect('dashboard:user_management')
 
 class AdminDisputeResolutionView(LoginRequiredMixin, TemplateView):
     """View and resolve escrow disputes."""

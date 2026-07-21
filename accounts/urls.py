@@ -12,6 +12,7 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='login'),
     path('login-code/', views.EmailLoginCodeRequestView.as_view(), name='login_code_request'),
     path('login-code/verify/', views.EmailLoginCodeVerifyView.as_view(), name='login_code_verify'),
+    path('login/2fa/', views.StaffTwoFactorVerifyView.as_view(), name='staff_2fa_verify'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
 
     # Email Verification

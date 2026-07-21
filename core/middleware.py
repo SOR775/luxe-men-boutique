@@ -47,6 +47,21 @@ class ActivityLogMiddleware(MiddlewareMixin):
         return response
 
 
+class StaffSessionTimeoutMiddleware(MiddlewareMixin):
+    """
+    Staff/admin sessions are a much higher-value target than a regular
+    customer session, so they get a shorter sliding idle timeout instead
+    of inheriting the default SESSION_COOKIE_AGE. Each request from a
+    staff user resets the countdown; a customer session is untouched.
+    """
+
+    def process_request(self, request: HttpRequest) -> None:
+        user = getattr(request, 'user', None)
+        if user is not None and getattr(user, 'is_authenticated', False) and getattr(user, 'is_staff', False):
+            timeout = getattr(settings, 'STAFF_SESSION_TIMEOUT_SECONDS', 900)  # 15 min default
+            request.session.set_expiry(timeout)
+
+
 class CartMiddleware(MiddlewareMixin):
     """
     Ensures a cart session key exists for every visitor.

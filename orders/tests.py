@@ -1,12 +1,14 @@
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from products.models import Category, Product, ProductVariant
-from .models import Cart, CartItem
+from .models import Cart, CartItem, Coupon, Order, OrderItem
 from .views import CartView, get_cart_promo_context, get_cart_recommendations, get_cart_financial_context
 
 
@@ -179,6 +181,63 @@ class AddToCartViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
+
+
+class OrderReceiptTests(TestCase):
+    def test_receipt_shows_transaction_reference_and_fee_breakdown(self):
+        user = get_user_model().objects.create_user(
+            email='customer@example.com',
+            username='customer',
+            password='secret123',
+        )
+        coupon = Coupon.objects.create(
+            code='SAVE10',
+            discount_type=Coupon.DiscountType.PERCENTAGE,
+            discount_value=10,
+            minimum_order_amount=0,
+            max_uses=1,
+            times_used=0,
+            valid_from=timezone.now() - timezone.timedelta(days=1),
+            valid_until=timezone.now() + timezone.timedelta(days=1),
+            is_active=True,
+        )
+        order = Order.objects.create(
+            order_number='LM00000001',
+            user=user,
+            shipping_name='Test User',
+            shipping_phone='0700000000',
+            shipping_email='customer@example.com',
+            shipping_address='123 Market Street',
+            shipping_city='Nairobi',
+            shipping_country='Kenya',
+            subtotal=Decimal('1000.00'),
+            shipping_cost=Decimal('250.00'),
+            discount_amount=Decimal('100.00'),
+            total=Decimal('1150.00'),
+            coupon=coupon,
+            status=Order.Status.ESCROW,
+            payment_status=Order.PaymentStatus.PAID,
+        )
+        OrderItem.objects.create(
+            order=order,
+            variant=None,
+            product_name='Classic Shirt',
+            variant_detail='M / Black',
+            sku='CS-001',
+            unit_price=Decimal('1000.00'),
+            quantity=1,
+            line_total=Decimal('1000.00'),
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse('orders:order_receipt', args=[order.order_number]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Transaction reference')
+        self.assertContains(response, 'Coupon')
+        self.assertContains(response, 'Shipping')
+        self.assertContains(response, 'Discount')
+        self.assertContains(response, 'Barcode')
 
 
 class SaveForLaterTests(TestCase):

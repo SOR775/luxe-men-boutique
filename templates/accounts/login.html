@@ -5,6 +5,19 @@
 
 {% block content %}
 <style>
+  :root{
+    --void: #0a0e27;
+    --void-deep: #05061a;
+    --magenta: #ff2e88;
+    --cyan: #00f0ff;
+    --purple: #7b2ff7;
+    --sun-core: #fff6d6;
+    --sun-mid: #ff9d5c;
+    --ink: #f4f0ff;
+    --ink-dim: #a9a4c9;
+    --line: rgba(244,240,255,0.14);
+  }
+
   @keyframes luxeFadeUp {
     0%   { opacity: 0; transform: translateY(24px); }
     100% { opacity: 1; transform: translateY(0); }
@@ -24,33 +37,169 @@
     0%   { transform: scaleX(0); }
     100% { transform: scaleX(1); }
   }
-  @keyframes luxeSpin {
-    to { transform: rotate(360deg); }
+  @keyframes glitch {
+    0%{ transform: translate(0,0); }
+    20%{ transform: translate(-2px, 1px); text-shadow: 3px 0 var(--cyan), -3px 0 var(--magenta); }
+    40%{ transform: translate(2px, -1px); }
+    60%{ transform: translate(-1px, 2px); text-shadow: -3px 0 var(--cyan), 3px 0 var(--magenta); }
+    80%{ transform: translate(1px, -2px); }
+    100%{ transform: translate(0,0); }
+  }
+  @keyframes twinkle{
+    0%,100%{ opacity:0.15; }
+    50%{ opacity:0.9; }
+  }
+  @keyframes sunpulse{
+    0%,100%{ transform: scale(1); }
+    50%{ transform: scale(1.035); }
+  }
+  @keyframes barsdrift{
+    0%{ background-position: 0 0; }
+    100%{ background-position: 0 26px; }
+  }
+  @keyframes gridmove{
+    0%{ background-position: 0 0, 0 0; }
+    100%{ background-position: 0 60px, 0 0; }
+  }
+  @property --ang{
+    syntax:'<angle>';
+    inherits:false;
+    initial-value:0deg;
+  }
+  @keyframes rotate-border{
+    to{ --ang: 360deg; }
   }
 
-  .luxe-card {
-    animation: luxeFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* ===== Background scene (synthwave) ===== */
+  .luxe-scene{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(123,47,247,0.35), transparent 60%),
+      linear-gradient(180deg, var(--void) 0%, var(--void-deep) 55%, #020208 100%);
+    overflow:hidden;
   }
+  .luxe-stars{ position:absolute; inset:0; }
+  .luxe-star{
+    position:absolute;
+    background: var(--ink);
+    border-radius:50%;
+    opacity:0.6;
+    animation: twinkle 4s ease-in-out infinite;
+  }
+  .luxe-sun-wrap{
+    position:absolute;
+    left:50%;
+    top:8%;
+    transform: translateX(-50%);
+    width:min(40vw, 480px);
+    height:min(40vw, 480px);
+    border-radius:50%;
+    overflow:hidden;
+    filter: drop-shadow(0 0 60px rgba(255,110,90,0.5)) drop-shadow(0 0 110px rgba(255,46,136,0.22));
+  }
+  .luxe-sun{
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, var(--sun-core) 0%, var(--sun-mid) 32%, var(--magenta) 62%, var(--purple) 100%);
+    animation: sunpulse 6s ease-in-out infinite;
+  }
+  .luxe-sun-bars{
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(180deg, var(--void-deep) 0px, var(--void-deep) 6px, transparent 6px, transparent 15px);
+    opacity:0.9;
+    animation: barsdrift 5s linear infinite;
+  }
+  .luxe-horizon{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:40%;
+    background: var(--void-deep);
+    border-top: 2px solid var(--magenta);
+    box-shadow: 0 -2px 40px rgba(255,46,136,0.5), 0 -80px 120px -40px rgba(123,47,247,0.3);
+    overflow:hidden;
+    perspective: 300px;
+  }
+  .luxe-grid{
+    position:absolute;
+    left:50%; bottom:0;
+    width:220%;
+    height:220%;
+    transform: translateX(-50%) rotateX(78deg);
+    background-image:
+      linear-gradient(rgba(0,240,255,0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,0.5) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridmove 1.6s linear infinite;
+  }
+  .luxe-vignette{
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(2,2,8,0.85) 100%);
+  }
+
+  /* ===== Card ===== */
+  .luxe-card {
+    position:relative;
+    animation: luxeFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    background: linear-gradient(160deg, rgba(20,18,45,0.92), rgba(10,10,28,0.94)) !important;
+    border: 1px solid var(--line) !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+  }
+  .luxe-card::before{
+    content:'';
+    position:absolute;
+    inset:-1px;
+    border-radius: inherit;
+    padding:1px;
+    background: conic-gradient(from var(--ang, 0deg), var(--cyan), var(--purple), var(--magenta), var(--cyan));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: rotate-border 4s linear infinite;
+    opacity:0.9;
+    pointer-events:none;
+  }
+
   .luxe-heading {
     animation: luxeFadeIn 0.8s ease-out 0.1s both;
+    font-family: 'Audiowide', serif;
+    letter-spacing: 2px;
+    color: var(--ink) !important;
+    text-shadow: 0 0 6px rgba(244,240,255,0.6), 2px 0 var(--cyan), -2px 0 var(--magenta);
+    cursor:default;
   }
+  .luxe-heading:hover{ animation: luxeFadeIn 0.01s, glitch 0.5s steps(2,end) 2; }
+
   .luxe-subtext {
     animation: luxeFadeIn 0.8s ease-out 0.25s both;
+    color: var(--ink-dim) !important;
   }
+  .luxe-subtext a{ color: var(--cyan) !important; }
+  .luxe-subtext a:hover{ color: var(--magenta) !important; }
+
   .luxe-message {
     animation: luxeShake 0.5s ease-in-out both;
   }
+
   .luxe-field {
     animation: luxeFadeUp 0.5s ease-out both;
   }
   .luxe-field:nth-of-type(1) { animation-delay: 0.15s; }
   .luxe-field:nth-of-type(2) { animation-delay: 0.25s; }
+  .luxe-field label{ color: var(--ink-dim) !important; }
 
   .luxe-input {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease, background 0.25s ease;
+    background: rgba(255,255,255,0.03) !important;
+    border-color: var(--line) !important;
+    color: var(--ink) !important;
   }
+  .luxe-input::placeholder{ color: rgba(169,164,201,0.55) !important; }
   .luxe-input:focus {
     transform: translateY(-1px);
+    border-color: var(--cyan) !important;
+    box-shadow: 0 0 0 3px rgba(0,240,255,0.15), 0 0 18px rgba(0,240,255,0.25) !important;
+    background: rgba(0,240,255,0.04) !important;
   }
 
   .luxe-label-wrap {
@@ -64,7 +213,7 @@
     bottom: -2px;
     width: 100%;
     height: 1px;
-    background-color: #d4af37;
+    background-color: var(--cyan);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.3s ease;
@@ -76,7 +225,9 @@
   .luxe-links a {
     position: relative;
     transition: color 0.2s ease, padding-left 0.2s ease;
+    color: var(--magenta) !important;
   }
+  .luxe-links a:hover{ color: var(--cyan) !important; }
   .luxe-links a::before {
     content: "";
     position: absolute;
@@ -99,12 +250,18 @@
   .luxe-submit {
     position: relative;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.5s ease;
     animation: luxeFadeUp 0.5s ease-out 0.35s both;
+    background: linear-gradient(90deg, var(--magenta), var(--purple), var(--cyan)) !important;
+    background-size: 220% 100% !important;
+    color: var(--void-deep) !important;
+    font-family:'Audiowide', serif;
+    box-shadow: 0 8px 24px rgba(255,46,136,0.25);
   }
   .luxe-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px -6px rgba(212, 175, 55, 0.6);
+    background-position: 100% 0 !important;
+    box-shadow: 0 8px 30px rgba(0,240,255,0.35);
   }
   .luxe-submit:active {
     transform: translateY(0) scale(0.98);
@@ -125,13 +282,15 @@
 
   .luxe-checkbox {
     transition: transform 0.15s ease;
+    accent-color: var(--magenta) !important;
   }
   .luxe-checkbox:active {
     transform: scale(0.9);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .luxe-card, .luxe-heading, .luxe-subtext, .luxe-message, .luxe-field, .luxe-submit {
+    .luxe-card, .luxe-heading, .luxe-subtext, .luxe-message, .luxe-field, .luxe-submit,
+    .luxe-star, .luxe-sun, .luxe-sun-bars, .luxe-grid, .luxe-card::before {
       animation: none !important;
     }
     .luxe-input:focus, .luxe-submit:hover, .luxe-submit:active {
@@ -140,13 +299,23 @@
   }
 </style>
 
-<div class="min-h-screen bg-gray-50 dark:bg-luxe-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-  <div class="luxe-card max-w-md w-full space-y-8 bg-white dark:bg-luxe-gray p-8 border border-gray-100 dark:border-gray-800 rounded-sm shadow-sm">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+
+<div class="luxe-scene" aria-hidden="true">
+  <div class="luxe-stars" id="luxeStars"></div>
+  <div class="luxe-sun-wrap"><div class="luxe-sun"></div><div class="luxe-sun-bars"></div></div>
+  <div class="luxe-horizon"><div class="luxe-grid"></div></div>
+  <div class="luxe-vignette"></div>
+</div>
+
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="luxe-card max-w-md w-full space-y-8 p-8 rounded-sm shadow-sm">
     <div class="text-center">
-      <h2 class="luxe-heading mt-2 text-3xl font-serif font-bold text-gray-900 dark:text-white">Sign In</h2>
-      <p class="luxe-subtext mt-2 text-sm text-gray-500">
+      <h2 class="luxe-heading mt-2 text-3xl font-serif font-bold">Sign In</h2>
+      <p class="luxe-subtext mt-2 text-sm">
         Or
-        <a href="{% url 'accounts:register' %}" class="font-medium text-luxe-gold hover:text-yellow-600 transition">
+        <a href="{% url 'accounts:register' %}" class="font-medium transition">
           create a new account
         </a>
       </p>
@@ -170,18 +339,18 @@
 
       <div class="space-y-4">
         <div class="luxe-field">
-          <label for="id_username" class="luxe-label-wrap block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Email or Username</label>
+          <label for="id_username" class="luxe-label-wrap block text-xs font-bold uppercase tracking-wider mb-2">Email or Username</label>
           <input id="id_username" name="username" type="text" autocomplete="username" required
-            class="luxe-input appearance-none rounded-sm relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-luxe-dark focus:outline-none focus:ring-luxe-gold focus:border-luxe-gold sm:text-sm"
+            class="luxe-input appearance-none rounded-sm relative block w-full px-3 py-3 border focus:outline-none sm:text-sm"
             placeholder="Email or username" value="{{ form.username.value|default:'' }}">
           {% if form.username.errors %}
           <p class="luxe-message text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</p>
           {% endif %}
         </div>
         <div class="luxe-field">
-          <label for="id_password" class="luxe-label-wrap block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Password</label>
+          <label for="id_password" class="luxe-label-wrap block text-xs font-bold uppercase tracking-wider mb-2">Password</label>
           <input id="id_password" name="password" type="password" autocomplete="current-password" required
-            class="luxe-input appearance-none rounded-sm relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-luxe-dark focus:outline-none focus:ring-luxe-gold focus:border-luxe-gold sm:text-sm"
+            class="luxe-input appearance-none rounded-sm relative block w-full px-3 py-3 border focus:outline-none sm:text-sm"
             placeholder="••••••••">
           {% if form.password.errors %}
           <p class="luxe-message text-red-500 text-xs mt-1">{{ form.password.errors.0 }}</p>
@@ -191,27 +360,27 @@
 
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div class="flex items-center">
-          <input id="remember-me" name="remember" type="checkbox" class="luxe-checkbox h-4 w-4 text-luxe-gold focus:ring-luxe-gold border-gray-300 rounded accent-luxe-gold">
-          <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+          <input id="remember-me" name="remember" type="checkbox" class="luxe-checkbox h-4 w-4 rounded">
+          <label for="remember-me" class="ml-2 block text-sm" style="color:var(--ink-dim)">
             Remember me
           </label>
         </div>
 
         <div class="luxe-links text-sm space-y-1">
-          <a href="{% url 'accounts:forgot_password' %}" class="block font-medium text-luxe-gold hover:text-yellow-600">
+          <a href="{% url 'accounts:forgot_password' %}" class="block font-medium">
             Forgot your password?
           </a>
-          <a href="{% url 'accounts:resend_verification' %}" class="block font-medium text-luxe-gold hover:text-yellow-600">
+          <a href="{% url 'accounts:resend_verification' %}" class="block font-medium">
             Didn't receive verification email?
           </a>
-          <a href="{% url 'accounts:login_code_request' %}" class="block font-medium text-luxe-gold hover:text-yellow-600">
+          <a href="{% url 'accounts:login_code_request' %}" class="block font-medium">
             Sign in with email code instead
           </a>
         </div>
       </div>
 
       <div>
-        <button type="submit" class="luxe-submit group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-widest rounded-sm text-white bg-luxe-gold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxe-gold">
+        <button type="submit" class="luxe-submit group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold uppercase tracking-widest rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2">
           <span class="luxe-shine"></span>
           <span class="relative z-10">Sign In</span>
         </button>
@@ -219,4 +388,22 @@
     </form>
   </div>
 </div>
+
+<script>
+  (function(){
+    var starsEl = document.getElementById('luxeStars');
+    var STAR_COUNT = 80;
+    for(var i=0;i<STAR_COUNT;i++){
+      var s = document.createElement('div');
+      s.className = 'luxe-star';
+      s.style.left = Math.random()*100 + '%';
+      s.style.top = Math.random()*60 + '%';
+      s.style.animationDelay = (Math.random()*4) + 's';
+      var size = (Math.random()*2+1) + 'px';
+      s.style.width = size;
+      s.style.height = size;
+      starsEl.appendChild(s);
+    }
+  })();
+</script>
 {% endblock %}

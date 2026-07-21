@@ -1,0 +1,24 @@
+diff --git a/templates/products/partials/shop_product_grid.html b/templates/products/partials/shop_product_grid.html
+index 7080bb4..1555113 100644
+--- a/templates/products/partials/shop_product_grid.html
++++ b/templates/products/partials/shop_product_grid.html
+@@ -23,7 +23,7 @@
+         {% endif %}
+       </a>
+       <h3 class="text-sm font-semibold text-gray-900 dark:text-white leading-snug"><a href="{% url 'products:detail' product.slug %}" class="hover:text-luxe-gold transition">{{ product.name }}</a></h3>
+-      <p class="text-luxe-gold font-bold text-sm mt-1">${{ product.base_price }}</p>
++      <p class="text-luxe-gold font-bold text-sm mt-1">{{ CURRENCY_SYMBOL }} {{ product.base_price }}</p>
+     </div>
+     {% endfor %}
+   </div>
+@@ -66,8 +66,8 @@
+       {% endif %}
+       <div class="flex items-center justify-between">
+         <div>
+-          <span class="text-base font-bold text-luxe-gold">${{ product.base_price }}</span>
+-          {% if product.compare_at_price %}<span class="text-xs text-gray-400 line-through ml-2">${{ product.compare_at_price }}</span>{% endif %}
++          <span class="text-base font-bold text-luxe-gold">{{ CURRENCY_SYMBOL }} {{ product.base_price }}</span>
++          {% if product.compare_at_price %}<span class="text-xs text-gray-400 line-through ml-2">{{ CURRENCY_SYMBOL }} {{ product.compare_at_price }}</span>{% endif %}
+         </div>
+         <button type="button" onclick="toggleWishlist('{{ product.id }}', this)" class="group transition" title="Add to Wishlist">
+           <svg class="w-5 h-5 {% if product.in_wishlist %}text-red-500 fill-current{% else %}text-gray-400 group-hover:text-red-500{% endif %} transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
