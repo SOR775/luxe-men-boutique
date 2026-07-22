@@ -23,8 +23,8 @@ class Coupon(models.Model):
     minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     max_uses = models.PositiveIntegerField(null=True, blank=True, help_text="Leave blank for unlimited")
     times_used = models.PositiveIntegerField(default=0)
-    valid_from = models.DateTimeField()
-    valid_until = models.DateTimeField()
+    valid_from = models.DateTimeField(default=timezone.now, blank=True, null=True)
+    valid_until = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -38,20 +38,34 @@ class Coupon(models.Model):
         now = timezone.now()
         if not self.is_active:
             return False
-        if now < self.valid_from or now > self.valid_until:
-            return False
+        if self.valid_from:
+            v_from = self.valid_from
+            if timezone.is_naive(v_from):
+                v_from = timezone.make_aware(v_from)
+            # Allow up to 24-hour offset for timezone differences on newly created coupons
+            if v_from > now and (v_from - now).total_seconds() > 86400:
+                return False
+        if self.valid_until:
+            v_until = self.valid_until
+            if timezone.is_naive(v_until):
+                v_until = timezone.make_aware(v_until)
+            if now > v_until:
+                return False
         if self.max_uses and self.times_used >= self.max_uses:
             return False
         return True
 
     def compute_discount(self, order_total):
         if not self.is_valid():
-            return 0
+            return Decimal('0.00')
+        from decimal import Decimal
+        order_total = Decimal(str(order_total))
+        val = Decimal(str(self.discount_value))
         if self.discount_type == self.DiscountType.PERCENTAGE:
-            return round(order_total * self.discount_value / 100, 2)
+            return (order_total * val / Decimal('100')).quantize(Decimal('0.01'))
         elif self.discount_type == self.DiscountType.FIXED:
-            return min(self.discount_value, order_total)
-        return 0
+            return min(val, order_total)
+        return Decimal('0.00')
 
 
 # ─── Shipping Zone & Rate ─────────────────────────────────────────────────────
@@ -288,5 +302,6 @@ class ReturnRequest(models.Model):
                 description=f'Refund for {self.order.order_number}',
                 reference=f'return-{self.id}',
                 actor=actor,
+                order=self.order,
             )
         return self

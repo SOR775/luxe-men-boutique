@@ -3,7 +3,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 
 from orders.models import Order, ReturnRequest
 from payments.models import Payment
@@ -238,6 +238,76 @@ class WalletModelTests(TestCase):
         expected, actual, discrepancy = self.wallet.reconcile()
         self.assertEqual(expected, actual)
         self.assertEqual(discrepancy, Decimal('0'))
+
+    def test_wallet_system_ledger_records_entries(self):
+        self.wallet.credit(Decimal('500.00'), description='Topup test')
+        self.wallet.debit(Decimal('200.00'), description='Spend test')
+
+        ledger_entries = self.wallet.ledger_entries.all()
+        self.assertEqual(ledger_entries.count(), 2)
+        credit_entry = ledger_entries.filter(entry_type='credit').first()
+        debit_entry = ledger_entries.filter(entry_type='debit').first()
+
+        self.assertIsNotNone(credit_entry)
+        self.assertEqual(credit_entry.amount, Decimal('500.00'))
+        self.assertIsNotNone(debit_entry)
+        self.assertEqual(debit_entry.amount, Decimal('-200.00'))
+
+    def test_partial_wallet_payment_and_mpesa_escrow_accumulation(self):
+        # 1. Fund wallet with 400 KES
+        self.wallet.credit(Decimal('400.00'), description='Partial topup')
+
+        # 2. Create order of 1000 KES
+        order = Order.objects.create(
+            user=self.user,
+            shipping_name='Buyer',
+            shipping_phone='0712345678',
+            shipping_email='buyer@example.com',
+            subtotal=Decimal('1000.00'),
+            total=Decimal('1000.00'),
+        )
+
+        self.client.force_login(self.user)
+
+        # 3. Pay with wallet (covers 400 KES)
+        resp = self.client.post(f'/payments/wallet/{order.id}/')
+        self.assertEqual(resp.status_code, 302)
+
+        order.refresh_from_db()
+        self.assertEqual(order.payment_status, Order.PaymentStatus.PARTIAL)
+        self.assertEqual(order.status, Order.Status.PENDING)
+
+        wallet_pmt = Payment.objects.get(order=order, method=Payment.Method.WALLET)
+        self.assertEqual(wallet_pmt.status, Payment.Status.COMPLETED)
+        self.assertEqual(wallet_pmt.amount, Decimal('400.00'))
+
+        # Check Escrow was created with 400 KES
+        from escrow.models import EscrowTransaction
+        escrow = EscrowTransaction.objects.get(order=order)
+        self.assertEqual(escrow.amount, Decimal('400.00'))
+
+        # 4. Now pay remaining 600 KES via M-Pesa completion
+        mpesa_pmt = Payment.objects.create(
+            order=order,
+            method=Payment.Method.MPESA,
+            amount=Decimal('600.00'),
+            status=Payment.Status.COMPLETED,
+        )
+
+        order.refresh_from_db()
+        escrow.refresh_from_db()
+        self.assertEqual(escrow.amount, Decimal('1000.00'))
+
+
+
+class WalletConcurrencyTests(TransactionTestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email='walletconc@example.com',
+            username='walletconcuser',
+            password='StrongPass123!',
+        )
+        self.wallet, _ = Wallet.objects.get_or_create(user=self.user)
 
     def test_concurrent_debits_no_negative_balance(self):
         # seed wallet with 100

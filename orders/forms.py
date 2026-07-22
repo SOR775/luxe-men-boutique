@@ -4,6 +4,9 @@ from .models import Coupon
 
 
 class CouponForm(forms.ModelForm):
+    valid_from = forms.DateTimeField(required=False, widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+    valid_until = forms.DateTimeField(required=False, widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+
     class Meta:
         model = Coupon
         fields = [
@@ -16,7 +19,3 @@ class CouponForm(forms.ModelForm):
             'valid_until',
             'is_active',
         ]
-        widgets = {
-            'valid_from': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'valid_until': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-        }

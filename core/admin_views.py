@@ -291,7 +291,7 @@ class AdminResolveDisputeView(LoginRequiredMixin, View):
             escrow.release_funds(actor=request.user, notes=admin_notes)
         elif action == 'refund':
             from wallets.models import award_wallet_credit
-            award_wallet_credit(escrow.buyer, escrow.amount, 'Dispute Refund', escrow.id)
+            award_wallet_credit(escrow.buyer, escrow.amount, 'Dispute Refund', f'dispute-refund-{escrow.id}', actor=request.user, order=escrow.order)
             escrow.status = 'refunded'
             escrow.resolved_by = request.user
             escrow.admin_resolution_notes = admin_notes

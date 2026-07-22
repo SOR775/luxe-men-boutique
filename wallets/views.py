@@ -1,14 +1,16 @@
 from decimal import Decimal
 
+from django.db.models import Sum
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import redirect
+from django.shortcuts import redirect, reverse
 from django.views import View
 from django.views.generic import TemplateView
 
 from payments.mpesa import mpesa_client
-from .models import Wallet, WalletTopUp
+from .models import Wallet, WalletTopUp, WalletReward
 
 
 class WalletOverviewView(LoginRequiredMixin, TemplateView):
@@ -24,6 +26,23 @@ class WalletOverviewView(LoginRequiredMixin, TemplateView):
         wallet = getattr(self.request, 'wallet', None)
         context['wallet'] = wallet
         context['recent_transactions'] = wallet.transactions.all()[:5] if wallet else []
+        context['recent_rewards'] = WalletReward.objects.filter(user=self.request.user).order_by('-created_at')[:5]
+        context['total_rewards_earned'] = WalletReward.objects.filter(user=self.request.user).aggregate(total=Sum('amount'))['total'] or 0
+
+        # Pass active pending top-up so the template can show a polling UI
+        pending_checkout_id = self.request.GET.get('pending_topup', '')
+        context['pending_checkout_id'] = pending_checkout_id
+
+        # Also look up the most recent pending top-up for this user in case the page was refreshed
+        if not pending_checkout_id:
+            recent_pending = WalletTopUp.objects.filter(
+                user=self.request.user,
+                status=WalletTopUp.Status.PENDING,
+            ).order_by('-created_at').first()
+            if recent_pending and recent_pending.checkout_request_id:
+                context['pending_checkout_id'] = recent_pending.checkout_request_id
+                context['pending_topup_amount'] = recent_pending.amount
+
         return context
 
 
@@ -152,4 +171,4 @@ class WalletTopUpView(LoginRequiredMixin, View):
         top_up.checkout_request_id = response.get('CheckoutRequestID', '')
         top_up.save(update_fields=['checkout_request_id', 'updated_at'])
         messages.success(request, 'An M-Pesa STK push has been sent to your phone. Complete the prompt to top up your wallet.')
-        return redirect('wallets:overview')
+        return redirect(f"{reverse('wallets:overview')}?pending_topup={top_up.checkout_request_id}")

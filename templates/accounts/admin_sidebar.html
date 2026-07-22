@@ -8,33 +8,64 @@
     </button>
   </div>
 
-  <nav class="mt-4 space-y-2" x-show="open" x-transition.opacity>
-    {% if 'access_admin_dashboard' in user_admin_permissions %}
-    <a href="{% url 'accounts:admin_dashboard' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'dashboard' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Dashboard</a>
+  <nav class="mt-4 space-y-1.5" x-show="open" x-transition.opacity>
+    {% if request.user.is_superuser or request.user.is_staff or 'access_admin_dashboard' in user_admin_permissions %}
+    <a href="{% url 'accounts:admin_dashboard' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'dashboard' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Dashboard</a>
     {% endif %}
-    {% if 'access_support_queue' in user_admin_permissions %}
-    <a href="{% url 'support:ticket_admin_list' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'support' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Support queue</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_orders' in user_admin_permissions %}
+    <a href="{% url 'orders:admin_orders' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'orders' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Order management</a>
     {% endif %}
-    {% if 'access_support_queue' in user_admin_permissions %}
-    <a href="{% url 'support:ticket_admin_list' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'support' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Support queue</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_products' in user_admin_permissions %}
+    <a href="{% url 'products:admin_products' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'products' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Products catalog</a>
+    <a href="{% url 'products:admin_categories' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'categories' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Product categories</a>
     {% endif %}
-    {% if 'access_audit_log' in user_admin_permissions %}
-    <a href="{% url 'accounts:admin_audit_log' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'audit' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Audit log</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_inventory_dashboard' in user_admin_permissions %}
+    <a href="{% url 'inventory:admin_dashboard' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'inventory' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Inventory & SKUs</a>
     {% endif %}
-    {% if 'access_system_health' in user_admin_permissions %}
-    <a href="{% url 'dashboard:system_health' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'system' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">System health</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_coupons' in user_admin_permissions %}
+    <a href="{% url 'orders:admin_coupons' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'coupons' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Coupons & discounts</a>
     {% endif %}
-    {% if 'access_user_management' in user_admin_permissions %}
-    <a href="{% url 'dashboard:user_management' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'user_management' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">User management</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_rma' in user_admin_permissions %}
+    <a href="{% url 'orders:admin_rma' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'rma' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Return requests (RMA)</a>
     {% endif %}
-    {% if 'access_dispute_resolution' in user_admin_permissions %}
-    <a href="{% url 'dashboard:disputes' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'disputes' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Dispute resolution</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_support_queue' in user_admin_permissions %}
+    <a href="{% url 'support:ticket_admin_list' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'support' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Support queue</a>
     {% endif %}
-    {% if 'access_content_moderation' in user_admin_permissions %}
-    <a href="{% url 'dashboard:moderation' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'moderation' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg_white/[0.06]{% endif %}">Content moderation</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_dispute_resolution' in user_admin_permissions or 'access_escrow' in user_admin_permissions %}
+    <a href="{% url 'escrow:dashboard' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'escrow' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Escrow dashboard</a>
+    <a href="{% url 'dashboard:disputes' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'disputes' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Dispute resolution</a>
     {% endif %}
-    {% if 'access_settings' in user_admin_permissions %}
-    <a href="{% url 'dashboard:settings' %}" class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 {% if active == 'settings' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">System settings</a>
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_orders' in user_admin_permissions or 'access_analytics' in user_admin_permissions %}
+    <a href="{% url 'orders:admin_revenue' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'revenue' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Revenue report</a>
+    <a href="{% url 'analytics:dashboard' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'analytics' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Analytics dashboard</a>
+    {% endif %}
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_user_management' in user_admin_permissions %}
+    <a href="{% url 'dashboard:user_management' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'user_management' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">User management</a>
+    {% endif %}
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_audit_log' in user_admin_permissions %}
+    <a href="{% url 'accounts:admin_audit_log' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'audit' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Audit log</a>
+    {% endif %}
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_system_health' in user_admin_permissions %}
+    <a href="{% url 'dashboard:system_health' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'system' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">System health</a>
+    {% endif %}
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_content_moderation' in user_admin_permissions %}
+    <a href="{% url 'dashboard:moderation' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'moderation' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">Content moderation</a>
+    {% endif %}
+
+    {% if request.user.is_superuser or request.user.is_staff or 'access_settings' in user_admin_permissions %}
+    <a href="{% url 'dashboard:settings' %}" class="flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors duration-200 {% if active == 'settings' %}bg-luxe-gold/10 text-luxe-gold{% else %}text-gray-700 dark:text-gray-200 hover:bg-luxe-gold/5 dark:hover:bg-white/[0.06]{% endif %}">System settings</a>
     {% endif %}
   </nav>
 </div>

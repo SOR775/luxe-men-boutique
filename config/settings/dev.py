@@ -15,9 +15,10 @@ DATABASES = {
 # Use Gmail SMTP for development email delivery
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-# Django Debug Toolbar
-INSTALLED_APPS += ['debug_toolbar']
+# Django Debug Toolbar & Live Browser Reload
+INSTALLED_APPS += ['debug_toolbar', 'django_browser_reload']
 MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+MIDDLEWARE.append('django_browser_reload.middleware.BrowserReloadMiddleware')
 INTERNAL_IPS = ['127.0.0.1']
 
 # Disable password hashing for speed in tests

@@ -54,28 +54,55 @@ def admin_permissions(request):
     """Expose the current user's admin permission codename set to templates."""
     permissions = []
     if getattr(request.user, 'is_authenticated', False) and request.user.is_staff:
-        try:
-            from accounts.models import Administrator
-
-            admin_profile, _ = Administrator.objects.get_or_create(user=request.user)
-            permissions = list(admin_profile.roles.values_list('permissions__codename', flat=True).distinct())
-            extra_permissions = list(admin_profile.extra_permissions.values_list('codename', flat=True))
-            permissions.extend(extra_permissions)
-            permissions = list(dict.fromkeys(permissions))
-        except Exception:
-            permissions = []
-
-        if not permissions:
+        if request.user.is_superuser:
             permissions = [
                 'access_admin_dashboard',
+                'access_orders',
+                'access_products',
+                'access_inventory_dashboard',
+                'access_inventory_sku',
+                'access_inventory_stock_history',
+                'access_coupons',
+                'access_bulk_order_actions',
+                'access_rma',
                 'access_support_queue',
+                'access_user_management',
                 'access_audit_log',
                 'access_system_health',
-                'access_user_management',
                 'access_dispute_resolution',
                 'access_content_moderation',
                 'access_settings',
+                'access_wallets',
+                'access_wallet_transactions',
+                'access_finance',
+                'access_payment_review',
+                'access_reconciliation',
+                'access_escrow',
+                'access_analytics',
             ]
+        else:
+            try:
+                from accounts.models import Administrator
+
+                admin_profile, _ = Administrator.objects.get_or_create(user=request.user)
+                permissions = list(admin_profile.roles.values_list('permissions__codename', flat=True).distinct())
+                extra_permissions = list(admin_profile.extra_permissions.values_list('codename', flat=True))
+                permissions.extend(extra_permissions)
+                permissions = list(dict.fromkeys(permissions))
+            except Exception:
+                permissions = []
+
+            if not permissions:
+                permissions = [
+                    'access_admin_dashboard',
+                    'access_support_queue',
+                    'access_audit_log',
+                    'access_system_health',
+                    'access_user_management',
+                    'access_dispute_resolution',
+                    'access_content_moderation',
+                    'access_settings',
+                ]
     return {'user_admin_permissions': permissions}
 
 

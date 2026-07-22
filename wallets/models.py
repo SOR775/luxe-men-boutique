@@ -31,47 +31,75 @@ class Wallet(models.Model):
         if amount <= 0:
             raise ValueError('Credit amount must be positive')
         amount = Decimal(str(amount))
-        from django.db import transaction
-        from django.db.models import F
+        from django.db import transaction, OperationalError
+        import time
 
-        # Use select_for_update to avoid race conditions and ensure atomicity
-        with transaction.atomic():
-            locked = Wallet.objects.select_for_update().get(pk=self.pk)
-            locked.balance = locked.balance + amount
-            locked.save(update_fields=['balance', 'updated_at'])
-            # Create transaction record referencing the locked wallet instance
-            return WalletTransaction.objects.create(
-                wallet=locked,
-                amount=amount,
-                transaction_type='credit',
-                description=description,
-                reference=reference,
-                actor=actor,
-                order=order,
-            )
+        for attempt in range(5):
+            try:
+                with transaction.atomic():
+                    locked = Wallet.objects.select_for_update().get(pk=self.pk)
+                    locked.balance = locked.balance + amount
+                    locked.save(update_fields=['balance', 'updated_at'])
+                    self.balance = locked.balance
+                    tx = WalletTransaction.objects.create(
+                        wallet=locked,
+                        amount=amount,
+                        transaction_type='credit',
+                        description=description,
+                        reference=reference,
+                        actor=actor,
+                        order=order,
+                    )
+                    WalletSystemLedger.objects.create(
+                        wallet=locked,
+                        amount=amount,
+                        entry_type='credit',
+                        description=description or 'Wallet credit',
+                        reference=reference,
+                    )
+                    return tx
+            except OperationalError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.05)
 
     def debit(self, amount, description='', reference='', actor=None, order=None):
         if amount <= 0:
             raise ValueError('Debit amount must be positive')
         amount = Decimal(str(amount))
-        from django.db import transaction
+        from django.db import transaction, OperationalError
+        import time
 
-        # Use select_for_update to prevent races and ensure balance check is reliable
-        with transaction.atomic():
-            locked = Wallet.objects.select_for_update().get(pk=self.pk)
-            if locked.balance < amount:
-                raise ValueError('Insufficient funds')
-            locked.balance = locked.balance - amount
-            locked.save(update_fields=['balance', 'updated_at'])
-            return WalletTransaction.objects.create(
-                wallet=locked,
-                amount=amount,
-                transaction_type='debit',
-                description=description,
-                reference=reference,
-                actor=actor,
-                order=order,
-            )
+        for attempt in range(5):
+            try:
+                with transaction.atomic():
+                    locked = Wallet.objects.select_for_update().get(pk=self.pk)
+                    if locked.balance < amount:
+                        raise ValueError('Insufficient funds')
+                    locked.balance = locked.balance - amount
+                    locked.save(update_fields=['balance', 'updated_at'])
+                    self.balance = locked.balance
+                    tx = WalletTransaction.objects.create(
+                        wallet=locked,
+                        amount=amount,
+                        transaction_type='debit',
+                        description=description,
+                        reference=reference,
+                        actor=actor,
+                        order=order,
+                    )
+                    WalletSystemLedger.objects.create(
+                        wallet=locked,
+                        amount=-amount,
+                        entry_type='debit',
+                        description=description or 'Wallet debit',
+                        reference=reference,
+                    )
+                    return tx
+            except OperationalError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.05)
 
     def reconcile(self):
         """
@@ -159,18 +187,23 @@ class WalletTopUp(models.Model):
         return f'Topup {self.amount} for {self.user}'
 
     def mark_completed(self, actor=None):
-        if self.status == self.Status.COMPLETED:
-            return self
-        self.status = self.Status.COMPLETED
-        self.save(update_fields=['status', 'updated_at'])
-        wallet, _ = Wallet.objects.get_or_create(user=self.user)
-        wallet.credit(
-            self.amount,
-            description=self.description or 'Wallet top-up',
-            reference=self.payment_reference or f'topup-{self.id}',
-            actor=actor,
-        )
-        return self
+        from django.db import transaction
+
+        with transaction.atomic():
+            topup = WalletTopUp.objects.select_for_update().get(pk=self.pk)
+            if topup.status == self.Status.COMPLETED:
+                return topup
+            topup.status = self.Status.COMPLETED
+            topup.save(update_fields=['status', 'updated_at'])
+            self.status = topup.status
+            wallet, _ = Wallet.objects.get_or_create(user=topup.user)
+            wallet.credit(
+                topup.amount,
+                description=topup.description or 'Wallet top-up',
+                reference=topup.payment_reference or f'topup-{topup.id}',
+                actor=actor,
+            )
+            return topup
 
 
 class WalletReward(models.Model):
@@ -193,25 +226,47 @@ class WalletReward(models.Model):
         return f'{self.get_reward_type_display()} for {self.user}'
 
 
-def award_wallet_credit(user, amount, description='', reference='', actor=None):
+def award_wallet_credit(user, amount, description='', reference='', actor=None, order=None):
     wallet, _ = Wallet.objects.get_or_create(user=user)
     # Allow callers to pass an order via reference parsing or explicit parameter if extended
-    wallet.credit(amount, description=description, reference=reference, actor=actor)
+    wallet.credit(amount, description=description, reference=reference, actor=actor, order=order)
     return wallet
 
 
+def award_reward(user, amount, description='', reference='', actor=None):
+    WalletReward.objects.create(
+        user=user,
+        reward_type=WalletReward.RewardType.REWARD,
+        amount=amount,
+        description=description or 'Loyalty reward',
+        reference=reference or f'reward-{user.id}',
+    )
+    return award_wallet_credit(user, amount, description=description or 'Loyalty reward', reference=reference or f'reward-{user.id}', actor=actor)
+
+
 # Monkey-patch helpers onto the user model for convenience.
-if not hasattr(settings.AUTH_USER_MODEL, 'award_referral_bonus'):
-    pass
-
-
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
 def _award_referral_bonus(self, amount, reference='', actor=None):
+    WalletReward.objects.create(
+        user=self,
+        reward_type=WalletReward.RewardType.REFERRAL,
+        amount=amount,
+        description='Referral bonus',
+        reference=reference or f'referral-{self.id}',
+    )
     return award_wallet_credit(self, amount, description='Referral bonus', reference=reference or f'referral-{self.id}', actor=actor)
 
 
-User.add_to_class('award_referral_bonus', _award_referral_bonus)
+def _award_loyalty_reward(self, amount, description='', reference='', actor=None):
+    return award_reward(self, amount, description=description, reference=reference, actor=actor)
+
+
+if not hasattr(User, 'award_referral_bonus'):
+    User.add_to_class('award_referral_bonus', _award_referral_bonus)
+
+if not hasattr(User, 'award_loyalty_reward'):
+    User.add_to_class('award_loyalty_reward', _award_loyalty_reward)

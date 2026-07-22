@@ -53,8 +53,8 @@ class PaymentSelectView(View):
 
     def get(self, request, order_id):
         order = get_object_or_404(Order, pk=order_id)
-        # Compute remaining due after any existing successful/pending payments
-        paid_agg = Payment.objects.filter(order=order).exclude(status=Payment.Status.FAILED).aggregate(total_paid=Sum('amount'))
+        # Compute remaining due after any existing COMPLETED payments
+        paid_agg = Payment.objects.filter(order=order, status=Payment.Status.COMPLETED).aggregate(total_paid=Sum('amount'))
         paid = paid_agg.get('total_paid') or Decimal('0')
         amount_to_pay = max(order.total - paid, Decimal('0'))
 
@@ -84,9 +84,8 @@ class WalletPaymentView(LoginRequiredMixin, View):
             messages.error(request, 'You can only pay your own orders with your wallet.')
             return redirect('payments:select', order_id=order.id)
 
-
-        # Compute remaining due after any existing successful/pending payments
-        paid_agg = Payment.objects.filter(order=order).exclude(status=Payment.Status.FAILED).aggregate(total_paid=Sum('amount'))
+        # Compute remaining due after any existing COMPLETED payments
+        paid_agg = Payment.objects.filter(order=order, status=Payment.Status.COMPLETED).aggregate(total_paid=Sum('amount'))
         paid = paid_agg.get('total_paid') or Decimal('0')
         remaining = max(order.total - paid, Decimal('0'))
 
@@ -113,10 +112,7 @@ class WalletPaymentView(LoginRequiredMixin, View):
                 order=order,
             )
 
-            # If the wallet covers the full total, mark payment completed and let escrow signal run.
-            # For partial wallet use, create a pending payment record so escrow is NOT created.
-            payment_status = Payment.Status.COMPLETED if amount_to_use >= remaining else Payment.Status.PENDING
-
+            # Wallet payment transaction is completed because funds were successfully debited
             payment = Payment.objects.create(
                 order=order,
                 method=Payment.Method.WALLET,
@@ -124,21 +120,27 @@ class WalletPaymentView(LoginRequiredMixin, View):
                 currency='KES',
                 reference=f'wallet-{order.order_number}',
                 description='Wallet payment',
-                status=payment_status,
+                status=Payment.Status.COMPLETED,
             )
 
-            if amount_to_use >= remaining:
+            # Re-calculate total paid across all COMPLETED payments
+            paid_agg = Payment.objects.filter(order=order, status=Payment.Status.COMPLETED).aggregate(total_paid=Sum('amount'))
+            total_paid = paid_agg.get('total_paid') or Decimal('0')
+            rem = max(order.total - total_paid, Decimal('0'))
+
+            if total_paid >= order.total:
                 order.payment_status = Order.PaymentStatus.PAID
                 order.status = Order.Status.ESCROW
                 message = f'Your wallet covered the remaining balance. Order #{order.order_number} is now in escrow.'
+                redirect_url = reverse('payments:success', kwargs={'order_id': order.id})
             else:
                 order.payment_status = Order.PaymentStatus.PARTIAL
-                # Do not create escrow for partial payments — keep order pending until remaining payment
                 order.status = Order.Status.PENDING
                 message = (
                     f'Your wallet covered KES {amount_to_use:.2f}. '
-                    f'Remaining balance KES {remaining - amount_to_use:.2f} is still due.'
+                    f'Remaining balance KES {rem:.2f} is still due.'
                 )
+                redirect_url = reverse('payments:select', kwargs={'order_id': order.id})
 
             order.save(update_fields=['payment_status', 'status', 'updated_at'])
             OrderEvent.objects.create(
@@ -148,7 +150,7 @@ class WalletPaymentView(LoginRequiredMixin, View):
             )
 
         messages.success(request, message)
-        return redirect('payments:select', order_id=order.id)
+        return redirect(redirect_url)
 
 
 # ─── M-Pesa STK Push ─────────────────────────────────────────────────────────
@@ -170,8 +172,14 @@ class MpesaSTKPushView(View):
         if not phone_number or len(phone_number) != 12 or not phone_number.startswith('254'):
             return JsonResponse({'success': False, 'error': 'Invalid M-Pesa phone number.'})
 
-        # Compute remaining balance after any existing successful/pending payments
-        paid_agg = Payment.objects.filter(order=order).exclude(status=Payment.Status.FAILED).aggregate(total_paid=Sum('amount'))
+        # Mark any previous pending/processing payments for this order as failed before starting a new attempt
+        Payment.objects.filter(
+            order=order,
+            status__in=[Payment.Status.PENDING, Payment.Status.PROCESSING]
+        ).update(status=Payment.Status.FAILED)
+
+        # Compute remaining balance after any existing COMPLETED payments
+        paid_agg = Payment.objects.filter(order=order, status=Payment.Status.COMPLETED).aggregate(total_paid=Sum('amount'))
         paid = paid_agg.get('total_paid') or Decimal('0')
         remaining = order.total - paid
 
@@ -232,29 +240,68 @@ class MpesaQueryView(View):
     """Poll M-Pesa for STK Push status."""
 
     def post(self, request, checkout_request_id):
+        # Check if checkout_request_id belongs to a WalletTopUp
+        wallet_topup = WalletTopUp.objects.filter(checkout_request_id=checkout_request_id).first()
+        if wallet_topup:
+            if wallet_topup.status == WalletTopUp.Status.COMPLETED:
+                return JsonResponse({'status': 'success', 'message': 'Wallet top-up completed.'})
+            if wallet_topup.status == WalletTopUp.Status.FAILED:
+                return JsonResponse({'status': 'failed', 'message': 'Wallet top-up failed or cancelled.'})
+
+            result = mpesa_client.stk_query(checkout_request_id)
+            if 'error' in result:
+                return JsonResponse({'status': 'pending', 'message': 'Still waiting for M-Pesa confirmation. Please ensure you entered your PIN on your phone.'})
+            if result.get('rate_limited'):
+                return JsonResponse({'status': 'pending', 'message': 'Safaricom is busy — still checking. Please wait a moment.'})
+
+            result_code = str(result.get('ResultCode', ''))
+            if result_code == '0':
+                wallet_topup.mark_completed(actor=wallet_topup.user)
+                return JsonResponse({'status': 'success', 'message': 'Wallet top-up completed.'})
+            elif result_code in ['1032', '1', '1001', '1037', '1025', '9999', '1019']:
+                wallet_topup.status = WalletTopUp.Status.FAILED
+                wallet_topup.save(update_fields=['status', 'updated_at'])
+                return JsonResponse({'status': 'failed', 'message': result.get('ResultDesc') or 'Top-up was cancelled or timed out. Please try again.'})
+            else:
+                return JsonResponse({'status': 'pending', 'message': result.get('ResultDesc') or 'Still waiting for M-Pesa confirmation.'})
+
         txn = get_object_or_404(MpesaTransaction, checkout_request_id=checkout_request_id)
 
         # If already resolved, return cached status
         if txn.is_complete:
             return JsonResponse({'status': 'success', 'receipt': txn.mpesa_receipt_number})
         if txn.is_failed:
-            return JsonResponse({'status': 'failed', 'message': txn.result_description})
+            return JsonResponse({'status': 'failed', 'message': txn.result_description or 'Payment failed or cancelled.'})
 
         result = mpesa_client.stk_query(checkout_request_id)
+        if 'error' in result or result.get('rate_limited'):
+            msg = 'Still waiting for M-Pesa confirmation. Please ensure you entered your PIN.' if 'error' in result else 'Safaricom is busy — still checking. Please wait.'
+            return JsonResponse({'status': 'pending', 'message': msg})
+
         result_code = str(result.get('ResultCode', ''))
 
         if result_code == '0':
             txn.status = MpesaTransaction.Status.SUCCESS
             txn.result_code = result_code
             txn.result_description = result.get('ResultDesc', '')
+            txn.mpesa_receipt_number = result.get('MpesaReceiptNumber', '') or txn.mpesa_receipt_number
             txn.save()
+
             # Mark payment as complete — triggers escrow creation via signal
             txn.payment.status = Payment.Status.COMPLETED
             txn.payment.save()
+
             order = txn.payment.order
             order.payment_status = Order.PaymentStatus.PAID
             order.status = Order.Status.ESCROW  # Funds now held in escrow
-            order.save()
+            order.save(update_fields=['payment_status', 'status', 'updated_at'])
+
+            from orders.models import OrderEvent
+            OrderEvent.objects.create(
+                order=order,
+                message=f"Payment confirmed via M-Pesa STK query. Receipt: {txn.mpesa_receipt_number or 'N/A'}.",
+            )
+
             try:
                 if order.user_id:
                     Notification.create(
@@ -272,7 +319,21 @@ class MpesaQueryView(View):
             except Exception:
                 pass
 
-        return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'success', 'receipt': txn.mpesa_receipt_number})
+
+        elif result_code in ['1032', '1', '1001', '1037', '1025', '9999', '1019']:
+            txn.status = MpesaTransaction.Status.FAILED
+            txn.result_code = result_code
+            txn.result_description = result.get('ResultDesc') or 'Payment cancelled or failed.'
+            txn.save()
+
+            txn.payment.status = Payment.Status.FAILED
+            txn.payment.save()
+
+            return JsonResponse({'status': 'failed', 'message': txn.result_description})
+
+        else:
+            return JsonResponse({'status': 'pending', 'message': result.get('ResultDesc') or 'Waiting for M-Pesa response...'})
 
 
 # ─── Daraja Callback (Webhook) ─────────────────────────────────────────────────────────

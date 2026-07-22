@@ -326,10 +326,27 @@ class FAQView(TemplateView):
 
 
 def toggle_dark_mode(request):
-    """Toggle dark/light mode preference stored in session."""
-    current = request.session.get('dark_mode', False)
-    request.session['dark_mode'] = not current
-    return JsonResponse({'dark_mode': not current})
+    """Toggle dark/light mode preference stored in session and user profile."""
+    state = request.GET.get('state') or request.POST.get('state')
+    if state is not None:
+        new_val = str(state).lower() in ('true', '1', 'dark')
+    else:
+        current = request.session.get('dark_mode')
+        if current is None:
+            if getattr(request.user, 'is_authenticated', False):
+                current = getattr(request.user, 'dark_mode', True)
+            else:
+                current = True
+        new_val = not current
+
+    request.session['dark_mode'] = new_val
+    if getattr(request.user, 'is_authenticated', False):
+        try:
+            request.user.dark_mode = new_val
+            request.user.save(update_fields=['dark_mode'])
+        except Exception:
+            pass
+    return JsonResponse({'dark_mode': new_val})
 
 
 def test_email(request):

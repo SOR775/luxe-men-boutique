@@ -43,24 +43,41 @@ class MpesaClient:
     def get_access_token(self) -> str | None:
         """
         Obtain a short-lived OAuth2 access token from Daraja.
-        Returns the token string or None on failure.
+        Returns the token string or None on failure. Caches the token to avoid rate limits.
         """
+        import time
+        from django.core.cache import cache
+
+        cache_key = f"mpesa_access_token_{self.environment}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
         credentials = f"{self.consumer_key}:{self.consumer_secret}"
         encoded = base64.b64encode(credentials.encode()).decode()
 
         url = f"{self.base_url}/oauth/v1/generate?grant_type=client_credentials"
-        try:
-            response = requests.get(
-                url,
-                headers={"Authorization": f"Basic {encoded}"},
-                timeout=10
-            )
-            response.raise_for_status()
-            data = response.json()
-            return data.get("access_token")
-        except requests.RequestException as e:
-            logger.error(f"[M-Pesa] Failed to get access token: {e}")
-            return None
+        for attempt in range(3):
+            try:
+                response = requests.get(
+                    url,
+                    headers={"Authorization": f"Basic {encoded}"},
+                    timeout=10
+                )
+                response.raise_for_status()
+                data = response.json()
+                token = data.get("access_token")
+                if token:
+                    expires_in = int(data.get("expires_in", 3500)) - 60
+                    cache.set(cache_key, token, timeout=max(60, expires_in))
+                    return token
+            except Exception as e:
+                logger.warning(f"[M-Pesa] OAuth token attempt {attempt + 1} failed: {e}")
+                if attempt < 2:
+                    time.sleep(1)
+
+        logger.error("[M-Pesa] Failed to get access token after 3 retries.")
+        return None
 
     # ── STK Push ──────────────────────────────────────────────────────────────
 
@@ -115,10 +132,14 @@ class MpesaClient:
                 json=payload,
                 timeout=15
             )
-            data = response.json()
+            try:
+                data = response.json()
+            except Exception as parse_err:
+                logger.error(f"[M-Pesa STK Push] Invalid JSON response: {parse_err}")
+                return {"error": f"Invalid response from Safaricom: HTTP {response.status_code}"}
             logger.info(f"[M-Pesa STK Push] Response: {data}")
             return data
-        except requests.RequestException as e:
+        except Exception as e:
             logger.error(f"[M-Pesa STK Push] Request failed: {e}")
             return {"error": str(e)}
 
@@ -150,8 +171,21 @@ class MpesaClient:
                 json=payload,
                 timeout=15
             )
-            return response.json()
-        except requests.RequestException as e:
+            try:
+                data = response.json()
+            except Exception as parse_err:
+                logger.error(f"[M-Pesa Query] Failed to parse JSON response: {parse_err}")
+                return {"error": f"Invalid response from Safaricom: HTTP {response.status_code}"}
+
+            # Detect Safaricom rate-limit (SpikeArrestViolation)
+            if 'fault' in data:
+                fault_str = str(data.get('fault', {}).get('faultstring', '')).lower()
+                if 'spike arrest' in fault_str or 'ratelimit' in fault_str.replace(' ', ''):
+                    logger.warning("[M-Pesa Query] Rate limited by Safaricom — backing off.")
+                    return {'rate_limited': True}
+                return {'error': data['fault'].get('faultstring', 'Safaricom API error.')}
+            return data
+        except Exception as e:
             logger.error(f"[M-Pesa Query] Failed: {e}")
             return {"error": str(e)}
 

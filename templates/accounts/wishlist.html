@@ -6,7 +6,7 @@
 <div class="space-y-6">
   
   {% if wishlist_items %}
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
     {% for item in wishlist_items %}
     <div class="bg-white dark:bg-luxe-gray border border-gray-100 dark:border-gray-800 rounded-sm relative group">
       <button type="button" onclick="toggleWishlist('{{ item.product.id }}', this); setTimeout(() => window.location.reload(), 500);" class="absolute top-2 right-2 p-2 bg-white dark:bg-luxe-gray rounded-full shadow-sm hover:scale-110 transition z-10 text-red-500 fill-current">

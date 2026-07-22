@@ -33,6 +33,43 @@ class MpesaTransactionAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     search_fields = ('checkout_request_id', 'mpesa_receipt_number', 'phone_number')
     readonly_fields = ('merchant_request_id', 'checkout_request_id', 'callback_raw', 'created_at', 'updated_at')
+    actions = ['action_sync_with_mpesa']
+
+    @admin.action(description='🔄 Sync status with Safaricom M-Pesa')
+    def action_sync_with_mpesa(self, request, queryset):
+        from .mpesa import mpesa_client
+        from orders.models import Order, OrderEvent
+        synced = 0
+        for txn in queryset:
+            if not txn.checkout_request_id:
+                continue
+            res = mpesa_client.stk_query(txn.checkout_request_id)
+            code = str(res.get('ResultCode', ''))
+            if code == '0':
+                txn.status = MpesaTransaction.Status.SUCCESS
+                txn.result_code = code
+                txn.result_description = res.get('ResultDesc', '')
+                txn.save()
+                txn.payment.status = Payment.Status.COMPLETED
+                txn.payment.save()
+                order = txn.payment.order
+                order.payment_status = Order.PaymentStatus.PAID
+                order.status = Order.Status.ESCROW
+                order.save(update_fields=['payment_status', 'status', 'updated_at'])
+                OrderEvent.objects.create(
+                    order=order,
+                    message=f"Synced via admin with M-Pesa: {res.get('ResultDesc', 'Paid')}",
+                    created_by=request.user,
+                )
+                synced += 1
+            elif code in ['1032', '1', '1001', '1037', '1025', '9999', '1019']:
+                txn.status = MpesaTransaction.Status.FAILED
+                txn.result_code = code
+                txn.result_description = res.get('ResultDesc', '')
+                txn.save()
+                txn.payment.status = Payment.Status.FAILED
+                txn.payment.save()
+        self.message_user(request, f'{synced} transaction(s) verified & synced with M-Pesa as PAID/ESCROW.')
 
 
 @admin.register(MpesaWebhookLog)

@@ -146,7 +146,7 @@ class EscrowTransaction(models.Model):
                 description=f'Order #{self.order.order_number} payment released',
                 reference=f'escrow-{self.id}',
                 actor=actor,
-                # callers can inspect reference/order in transaction records
+                order=self.order,
             )
         self._log(
             f'Escrow released. Funds of {self.currency} {self.amount} marked for payout to seller.',
@@ -187,6 +187,7 @@ class EscrowTransaction(models.Model):
                 description=f'Escrow refund for order {self.order.order_number}',
                 reference=f'escrow-refund-{self.id}',
                 actor=actor,
+                order=self.order,
             )
         self._log(f'Dispute resolved: buyer refunded {self.currency} {self.amount}.', actor=actor)
 

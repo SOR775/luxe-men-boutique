@@ -106,13 +106,27 @@ class RegisterView(View):
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('core:home')
-        form = RegistrationForm()
+        ref = request.GET.get('ref', '').strip()
+        form = RegistrationForm(initial={'referral_code': ref}) if ref else RegistrationForm()
         return render(request, self.template_name, {'form': form})
 
     def post(self, request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
+
+            ref_code = form.cleaned_data.get('referral_code', '').strip()
+            if ref_code:
+                referrer = User.objects.filter(referral_code__iexact=ref_code).first()
+                if referrer and referrer.id != user.id:
+                    user.referred_by = referrer
+                    user.save(update_fields=['referred_by'])
+                    try:
+                        from decimal import Decimal
+                        referrer.award_referral_bonus(Decimal('100.00'), reference=f'ref-{user.id}')
+                    except Exception:
+                        pass
+
             self._send_verification_email(user, request)
             messages.success(
                 request,

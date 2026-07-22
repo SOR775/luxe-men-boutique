@@ -35,6 +35,11 @@ class RegistrationForm(forms.ModelForm):
         label=_('I agree to the Terms & Conditions'),
         error_messages={'required': _('You must accept the terms and conditions.')},
     )
+    referral_code = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Referral Code (Optional)'}),
+        label=_('Referral Code'),
+    )
 
     class Meta:
         model = User

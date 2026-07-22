@@ -3,25 +3,85 @@
 {% block dashboard_title %}Wallet Transactions{% endblock %}
 
 {% block dashboard_content %}
-<div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Transaction history</h2>
-    <span class="text-sm text-gray-500">Balance: {{ wallet.balance }} {{ wallet.currency }}</span>
-  </div>
-  {% if transactions %}
-    <div class="space-y-3">
-      {% for tx in transactions %}
-        <div class="flex items-center justify-between rounded-2xl bg-gray-50/70 px-3 py-3 dark:bg-luxe-dark/70">
-          <div>
-            <p class="font-semibold text-gray-900 dark:text-white">{{ tx.description|default:tx.get_transaction_type_display }}</p>
-            <p class="text-sm text-gray-500">{{ tx.created_at|date:"M d, Y H:i" }} · {{ tx.reference|default:'-' }}</p>
-          </div>
-          <span class="font-semibold {% if tx.transaction_type == 'credit' %}text-emerald-600{% else %}text-amber-600{% endif %}">{{ tx.get_transaction_type_display }} {{ tx.amount }}</span>
-        </div>
-      {% endfor %}
+<div class="space-y-6">
+
+  <!-- Header / Balance Summary -->
+  <div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.3em] text-gray-400">Wallet Balance</p>
+        <p class="mt-1 text-3xl font-black text-gray-900 dark:text-white">
+          <span class="text-luxe-gold">KES</span> {{ wallet.balance|floatformat:2 }}
+        </p>
+      </div>
+      <a href="{% url 'wallets:overview' %}"
+         class="inline-flex items-center gap-2 rounded-full border border-luxe-gold/40 px-5 py-2.5 text-sm font-semibold text-luxe-gold hover:bg-luxe-gold/10 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Back to Wallet
+      </a>
     </div>
-  {% else %}
-    <p class="rounded-2xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">No transactions recorded yet.</p>
-  {% endif %}
+  </div>
+
+  <!-- Transaction List -->
+  <div class="rounded-[28px] border border-gray-200/70 bg-white/90 p-6 shadow-[0_20px_45px_rgba(15,15,15,0.06)] dark:bg-luxe-gray/90">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-5">Transaction History</h2>
+
+    {% if transactions %}
+      <div class="divide-y divide-gray-100 dark:divide-gray-800">
+        {% for tx in transactions %}
+          <div class="flex items-center gap-4 py-4">
+            <!-- Icon -->
+            <div class="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center
+              {% if tx.transaction_type == 'credit' %}bg-emerald-100 dark:bg-emerald-900/40{% else %}bg-amber-100 dark:bg-amber-900/40{% endif %}">
+              {% if tx.transaction_type == 'credit' %}
+                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                </svg>
+              {% else %}
+                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
+                </svg>
+              {% endif %}
+            </div>
+
+            <!-- Details -->
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm text-gray-900 dark:text-white">
+                {{ tx.description|default:tx.get_transaction_type_display }}
+              </p>
+              <p class="text-xs text-gray-500 mt-0.5">
+                {{ tx.created_at|date:"M d, Y · H:i" }}
+                {% if tx.reference %} · <span class="font-mono">{{ tx.reference }}</span>{% endif %}
+              </p>
+            </div>
+
+            <!-- Type badge + Amount -->
+            <div class="text-right flex-shrink-0">
+              <span class="font-black text-sm block
+                {% if tx.transaction_type == 'credit' %}text-emerald-600 dark:text-emerald-400{% else %}text-amber-600 dark:text-amber-400{% endif %}">
+                {% if tx.transaction_type == 'credit' %}+{% else %}−{% endif %}KES {{ tx.amount|floatformat:2 }}
+              </span>
+              <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold
+                {% if tx.transaction_type == 'credit' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300
+                {% else %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300{% endif %}">
+                {{ tx.get_transaction_type_display }}
+              </span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center">
+        <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+        <p class="text-sm text-gray-400">No transactions recorded yet.</p>
+        <a href="{% url 'wallets:overview' %}" class="mt-3 inline-block text-sm font-semibold text-luxe-gold hover:underline">
+          Top up your wallet →
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}

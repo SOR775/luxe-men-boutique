@@ -353,23 +353,30 @@ class RemoveFromCartView(View):
 
 class ApplyCouponView(View):
     def post(self, request):
-        code = request.POST.get('coupon_code', '').strip().upper()
+        code = request.POST.get('coupon_code', '').strip()
         cart = get_or_create_cart(request)
 
-        try:
-            coupon = Coupon.objects.get(code=code)
-            if coupon.is_valid():
-                if cart.subtotal < coupon.minimum_order_amount:
-                    messages.error(request, f'Minimum order of KES {coupon.minimum_order_amount} required.')
-                else:
-                    request.session['coupon_id'] = str(coupon.id)
-                    discount = coupon.compute_discount(cart.subtotal)
-                    messages.success(request, f'Coupon "{code}" applied! You save KES {discount}.')
-            else:
-                messages.error(request, 'This coupon is expired or invalid.')
-        except Coupon.DoesNotExist:
-            messages.error(request, f'Coupon "{code}" not found.')
+        if not code:
+            messages.error(request, 'Please enter a coupon code.')
+            return redirect_to_cart()
 
+        coupon = Coupon.objects.filter(code__iexact=code).first()
+
+        if not coupon:
+            messages.error(request, f'Coupon "{code}" not found.')
+            return redirect_to_cart()
+
+        if not coupon.is_valid():
+            messages.error(request, f'Coupon "{coupon.code}" is currently inactive or expired.')
+            return redirect_to_cart()
+
+        if cart.subtotal < coupon.minimum_order_amount:
+            messages.error(request, f'Minimum order of KES {coupon.minimum_order_amount:.2f} is required for coupon "{coupon.code}".')
+            return redirect_to_cart()
+
+        request.session['coupon_id'] = str(coupon.id)
+        discount = coupon.compute_discount(cart.subtotal)
+        messages.success(request, f'Coupon "{coupon.code}" applied! You save KES {discount:.2f}.')
         return redirect_to_cart()
 
 
