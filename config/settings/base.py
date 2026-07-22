@@ -54,6 +54,8 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'channels',
     'anymail',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 LOCAL_APPS = [
@@ -321,3 +323,12 @@ LOGGING = {
         'payments': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False},
     },
 }
+
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': env('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
